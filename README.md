@@ -1,10 +1,26 @@
-# Virsa
+<!-- Animated Header -->
 
-### *What we inherit. What we leave behind.*
+<p align="center">
+  <img
+    src="https://capsule-render.vercel.app/api?type=waving&color=0:1f2937,100:6b705c&height=180&section=header&text=Virsa&fontSize=64&fontColor=ffffff&animation=fadeIn&fontAlignY=38"
+    width="100%"
+  />
+</p>
 
-Virsa is a **private digital family archive** built to preserve the people, stories, memories, and relationships that make a family what it is.
+<p align="center">
+  <strong>What we inherit. What we leave behind.</strong>
+</p>
 
-It combines an interactive family tree with personal stories, photographs, memories, and life timelines — creating a living archive that can be passed from one generation to the next.
+<p align="center">
+  A private digital family archive for preserving people, stories, memories, and generations.
+</p>
+
+<p align="center">
+  <a href="#-the-idea">The Idea</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-technology">Technology</a> •
+  <a href="#-development">Development</a>
+</p>
 
 ---
 
@@ -13,6 +29,8 @@ It combines an interactive family tree with personal stories, photographs, memor
 A family tree tells you **who is related to whom**.
 
 Virsa aims to tell you **who those people were**.
+
+It combines an interactive family tree with photographs, life stories, memories, and timelines — creating a private archive that can be passed from one generation to the next.
 
 ```text
                          ┌──────────────┐
@@ -34,28 +52,28 @@ Virsa aims to tell you **who those people were**.
 
 Click on a person and the tree becomes their story:
 
-**photographs → life story → memories → timeline → relationships**
+**Photographs → Life Story → Memories → Timeline → Relationships**
 
 ---
 
-## ✨ What We're Building
+## 🌳 Features
 
-### 🌳 Interactive Family Tree
+### Interactive Family Tree
 
-A visual, interactive representation of generations.
+A visual representation of generations.
 
 * Pan and zoom
 * Navigate generations
 * Explore relationships
 * Click people to open their stories
-* Distinct visual treatment for deceased family members
-* Responsive experience across devices
+* Distinct presentation for deceased members
+* Responsive experience
 
-### 📖 Personal Legacy
+### 📖 Legacy
 
 Every person can have a story attached to them.
 
-Birth information, life experiences, memories, photographs, important events, and the things their family wants future generations to remember.
+Their experiences, memories, photographs, important events, and the things their family wants future generations to remember.
 
 ### 🕰️ Life Timeline
 
@@ -69,51 +87,50 @@ Birth      Marriage     Child      Career     Legacy
 
 ### 🖼️ Memories & Photos
 
-Families can preserve photographs and personal memories alongside the people they belong to.
+Preserve photographs and personal memories alongside the people they belong to.
 
 ### 🔐 Private Family Spaces
 
 Families have their own private spaces.
 
-Members can be invited and assigned appropriate permissions, while unrelated families remain completely separate.
+Members can be invited and assigned appropriate permissions while unrelated families remain completely separate.
 
 ### 🤝 Collaborative History
 
 Family members can contribute information while keeping important changes reviewable.
 
-If something is disputed, Virsa should preserve the fact that **someone suggested it**, rather than pretending that historical information is always certain.
+Historical information can be disputed without pretending that there is always one unquestionable version of the truth.
 
 ---
 
-# 🎨 Visual Direction
+## 🎨 Visual Direction
 
-Virsa should feel **modern, minimal, warm, and premium**.
+Virsa should feel:
+
+**Modern · Minimal · Warm · Human · Premium**
 
 The interface should feel more like a beautiful digital archive than a traditional genealogy database.
 
-Some visual ideas we're exploring:
+We're exploring:
 
 * Smooth page transitions
 * Subtle micro-interactions
 * Animated family-tree connections
 * Gentle node expansion
-* Interactive timeline movement
-* Image hover effects
-* Elegant modal transitions
-* Skeleton loading states
-* Smooth tree zooming and panning
-* Soft gradients and depth
-* Respectful archival styling for deceased members
+* Interactive timelines
+* Image transitions
+* Elegant modals
+* Skeleton loading
+* Smooth tree navigation
+* Soft depth and gradients
+* Archival styling for deceased members
 * Responsive layouts
-* Thoughtful empty states
-
-Animations should support the experience rather than distract from it.
 
 > **The interface should feel alive, while the memories remain the focus.**
 
 ---
 
-# 🧭 Core Experience
+## 🧭 Core Experience
 
 ```text
         Create Account
@@ -130,19 +147,18 @@ Animations should support the experience rather than distract from it.
               ▼
         Select a Person
               │
-              ▼
-      ┌───────┴────────┐
-      │                │
-   Their Story      Their Photos
-      │                │
-      └───────┬────────┘
+        ┌─────┴─────┐
+        ▼           ▼
+     Their Story   Photos
+        │           │
+        └─────┬─────┘
               ▼
          Their Legacy
 ```
 
 ---
 
-# 🛠️ Technology
+## 🛠️ Technology
 
 ### Frontend
 
@@ -170,14 +186,14 @@ Animations should support the experience rather than distract from it.
 
 ---
 
-# 📁 Project Structure
+## 📁 Project Structure
 
 ```text
 Virsa/
 │
 ├── frontend/       # React application
 ├── backend/        # Node/Express API
-├── database/       # Database-related resources
+├── database/       # Database resources
 ├── docs/           # Project documentation
 ├── uploads/        # Local development uploads
 │
@@ -185,15 +201,15 @@ Virsa/
 └── .gitignore
 ```
 
-For development responsibilities and project rules, see:
+Important documentation:
 
-* [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)
-* [`docs/FRONTEND_CONTRIBUTOR.md`](docs/FRONTEND_CONTRIBUTOR.md)
-* [`docs/Daily_Progress.md`](docs/Daily_Progress.md)
+* [`DEVELOPMENT.md`](docs/DEVELOPMENT.md)
+* [`FRONTEND_CONTRIBUTOR.md`](docs/FRONTEND_CONTRIBUTOR.md)
+* [`Daily_Progress.md`](docs/Daily_Progress.md)
 
 ---
 
-# 🚀 Running Locally
+## 🚀 Running Locally
 
 ### Frontend
 
@@ -213,13 +229,13 @@ npm install
 npm run dev
 ```
 
-The frontend will normally run on:
+Frontend:
 
 ```text
 http://localhost:5173
 ```
 
-The backend will normally run on:
+Backend:
 
 ```text
 http://localhost:5000
@@ -227,26 +243,45 @@ http://localhost:5000
 
 ---
 
-# 🤝 Contributing
+## 🤝 Development
 
 Virsa is currently being developed collaboratively.
 
-Contributors should:
+The basic workflow is:
 
-1. Create a feature branch.
-2. Work independently on the feature.
-3. Keep commits meaningful.
-4. Update `Daily_Progress.md`.
-5. Open a Pull Request.
-6. Review changes before merging into `main`.
+```text
+Create Branch
+     ↓
+Build Feature
+     ↓
+Test
+     ↓
+Commit
+     ↓
+Push
+     ↓
+Pull Request
+     ↓
+Review
+     ↓
+Merge
+```
 
-See [`docs/FRONTEND_CONTRIBUTOR.md`](docs/FRONTEND_CONTRIBUTOR.md) for the frontend workflow.
+Contributors should also update:
+
+```text
+docs/Daily_Progress.md
+```
+
+after each working session.
+
+See [`FRONTEND_CONTRIBUTOR.md`](docs/FRONTEND_CONTRIBUTOR.md) for the frontend workflow.
 
 ---
 
-# 🗺️ Current Focus
+## 🗺️ MVP
 
-The initial MVP is focused on:
+The initial MVP focuses on:
 
 ```text
 Authentication
@@ -264,9 +299,9 @@ Stories & Memories
 Legacy
 ```
 
-We are intentionally keeping the first version focused.
+The first version is intentionally focused.
 
-More advanced features such as automatic family matching, intelligent genealogy suggestions, advanced AI tools, family books, and other ideas can come later.
+Advanced ideas such as automatic family matching, intelligent genealogy suggestions, family books, advanced AI tools, and other features can come later.
 
 ---
 
@@ -285,3 +320,12 @@ Virsa is an attempt to preserve those connections.
 ### **Remember the people. Preserve the stories. Carry the legacy forward.**
 
 ---
+
+<!-- Animated Footer -->
+
+<p align="center">
+  <img
+    src="https://capsule-render.vercel.app/api?type=waving&color=0:6b705c,100:1f2937&height=120&section=footer"
+    width="100%"
+  />
+</p>
