@@ -1,0 +1,1 @@
+### Setup ps1 file  is in root folder for getting the directory map of the whole project just run .\setup.ps1 in powershell while being in root folder and the direectory will be updated.

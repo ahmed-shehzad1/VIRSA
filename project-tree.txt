@@ -1,0 +1,63 @@
+VIRSA PROJECT DIRECTORY TREE
+============================
+
+|-- backend
+|   |-- src
+|   |   |-- config
+|   |   |   \-- database.js
+|   |   |-- controllers
+|   |   |-- middleware
+|   |   |-- models
+|   |   |-- routes
+|   |   |-- services
+|   |   |-- utils
+|   |   |-- validators
+|   |   |-- app.js
+|   |   \-- server.js
+|   |-- .gitkeep
+|   |-- package.json
+|   \-- package-lock.json
+|-- database
+|   |-- schema
+|   |   \-- schema.sql
+|   \-- seed
+|       \-- seed.sql
+|-- docs
+|   |-- api
+|   |-- architecture
+|   |-- docs
+|   |   \-- FRONTEND_CONTRIBUTOR.md
+|   |-- API.md
+|   |-- ARCHITECTURE.md
+|   |-- DAILY_PROGRESS.md
+|   |-- DATABASE.md
+|   |-- DEVELOPMENT.md
+|   |-- PROJECT.md
+|   \-- PROJECT_LAYOUT.md
+|-- frontend
+|   |-- public
+|   |   |-- favicon.svg
+|   |   \-- icons.svg
+|   |-- src
+|   |   |-- assets
+|   |   |   |-- hero.png
+|   |   |   |-- react.svg
+|   |   |   \-- vite.svg
+|   |   |-- App.css
+|   |   |-- App.jsx
+|   |   |-- index.css
+|   |   \-- main.jsx
+|   |-- .gitignore
+|   |-- eslint.config.js
+|   |-- index.html
+|   |-- package.json
+|   |-- package-lock.json
+|   |-- README.md
+|   \-- vite.config.js
+|-- scripts
+|-- uploads
+|-- .env.example
+|-- .gitignore
+|-- project-tree.txt
+|-- README.md
+\-- setup.ps1
