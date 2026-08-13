@@ -28,6 +28,16 @@ Delete-account UI (can live inside settings page, with a password-confirm modal)
 Logout button/action (no dedicated page)	POST /auth/logout
 Protected-route wrapper (not a page — a component/HOC that checks login state and redirects)
 
-
+### Day 2 — 
+Completed the Family Creation API and related backend validation.
+Implemented Family Retrieval API for fetching family details and data.
+Completed Family Update API for modifying family information.
+Implemented Family deletion/archive logic with proper backend handling.
+Built the Family Membership system and member management functionality.
+Implemented Owner, Admin, Member, and Viewer role logic and permissions.
+Completed Family Invitation API and invitation acceptance/rejection handling.
+Implemented Remove Member and Change Member Role APIs.
+Added Family privacy controls and Family access authorization.
+Backend work for items 2.1–2.15 is completed; frontend implementation remains separate.
 
 ### Front End State here 
