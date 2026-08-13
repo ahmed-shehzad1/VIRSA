@@ -4,27 +4,52 @@ VIRSA PROJECT DIRECTORY TREE
 |-- backend
 |   |-- src
 |   |   |-- config
-|   |   |   \-- database.js
+|   |   |   |-- database.js
+|   |   |   |-- env.js
+|   |   |   \-- supabase.js
 |   |   |-- controllers
+|   |   |   |-- auth.controller.js
+|   |   |   \-- user.controller.js
 |   |   |-- middleware
+|   |   |   |-- auth.middleware.js
+|   |   |   |-- error.middleware.js
+|   |   |   |-- rateLimiters.js
+|   |   |   |-- upload.middleware.js
+|   |   |   \-- validate.middleware.js
 |   |   |-- models
+|   |   |   \-- user.model.js
 |   |   |-- routes
+|   |   |   |-- auth.routes.js
+|   |   |   |-- index.js
+|   |   |   \-- user.routes.js
 |   |   |-- services
+|   |   |   |-- auth.service.js
+|   |   |   |-- email.service.js
+|   |   |   |-- storage.service.js
+|   |   |   |-- token.service.js
+|   |   |   \-- user.service.js
 |   |   |-- utils
+|   |   |   |-- ApiError.js
+|   |   |   |-- ApiResponse.js
+|   |   |   |-- catchAsync.js
+|   |   |   |-- cookies.util.js
+|   |   |   |-- parseDuration.js
+|   |   |   |-- password.util.js
+|   |   |   \-- token.util.js
 |   |   |-- validators
+|   |   |   |-- auth.validator.js
+|   |   |   \-- user.validator.js
 |   |   |-- app.js
 |   |   \-- server.js
+|   |-- .env.example
 |   |-- .gitkeep
 |   |-- package.json
-|   \-- package-lock.json
+|   |-- package-lock.json
+|   \-- README.md
 |-- database
-|   |-- schema
-|   |   \-- schema.sql
-|   \-- seed
-|       \-- seed.sql
+|   \-- schema
+|       \-- schema.sql
 |-- docs
-|   |-- api
-|   |-- architecture
 |   |-- docs
 |   |   \-- FRONTEND_CONTRIBUTOR.md
 |   |-- API.md
@@ -32,32 +57,142 @@ VIRSA PROJECT DIRECTORY TREE
 |   |-- DAILY_PROGRESS.md
 |   |-- DATABASE.md
 |   |-- DEVELOPMENT.md
+|   |-- Guide_For_Mynoor.md
 |   |-- PROJECT.md
-|   \-- PROJECT_LAYOUT.md
+|   |-- PROJECT_LAYOUT.md
+|   \-- SUPABASE.md
 |-- frontend
+|   |-- project-config
+|   |   \-- project.json
 |   |-- public
-|   |   |-- favicon.svg
-|   |   \-- icons.svg
+|   |   |-- favicon.ico
+|   |   \-- robots.txt
 |   |-- src
 |   |   |-- assets
-|   |   |   |-- hero.png
-|   |   |   |-- react.svg
-|   |   |   \-- vite.svg
+|   |   |   |-- hero-archive.jpg
+|   |   |   |-- p-ahmed.jpg
+|   |   |   |-- p-fatima.jpg
+|   |   |   |-- ph-family.jpg
+|   |   |   |-- ph-railway.jpg
+|   |   |   \-- ph-wedding.jpg
+|   |   |-- components
+|   |   |   |-- ui
+|   |   |   |   |-- accordion.tsx
+|   |   |   |   |-- alert.tsx
+|   |   |   |   |-- alert-dialog.tsx
+|   |   |   |   |-- aspect-ratio.tsx
+|   |   |   |   |-- avatar.tsx
+|   |   |   |   |-- badge.tsx
+|   |   |   |   |-- breadcrumb.tsx
+|   |   |   |   |-- button.tsx
+|   |   |   |   |-- calendar.tsx
+|   |   |   |   |-- card.tsx
+|   |   |   |   |-- carousel.tsx
+|   |   |   |   |-- chart.tsx
+|   |   |   |   |-- checkbox.tsx
+|   |   |   |   |-- collapsible.tsx
+|   |   |   |   |-- command.tsx
+|   |   |   |   |-- context-menu.tsx
+|   |   |   |   |-- dialog.tsx
+|   |   |   |   |-- drawer.tsx
+|   |   |   |   |-- dropdown-menu.tsx
+|   |   |   |   |-- form.tsx
+|   |   |   |   |-- hover-card.tsx
+|   |   |   |   |-- input.tsx
+|   |   |   |   |-- input-otp.tsx
+|   |   |   |   |-- label.tsx
+|   |   |   |   |-- menubar.tsx
+|   |   |   |   |-- navigation-menu.tsx
+|   |   |   |   |-- pagination.tsx
+|   |   |   |   |-- popover.tsx
+|   |   |   |   |-- progress.tsx
+|   |   |   |   |-- radio-group.tsx
+|   |   |   |   |-- scroll-area.tsx
+|   |   |   |   |-- select.tsx
+|   |   |   |   |-- separator.tsx
+|   |   |   |   |-- sheet.tsx
+|   |   |   |   |-- sidebar.tsx
+|   |   |   |   |-- skeleton.tsx
+|   |   |   |   |-- slider.tsx
+|   |   |   |   |-- sonner.tsx
+|   |   |   |   |-- switch.tsx
+|   |   |   |   |-- table.tsx
+|   |   |   |   |-- tabs.tsx
+|   |   |   |   |-- textarea.tsx
+|   |   |   |   |-- toggle.tsx
+|   |   |   |   |-- toggle-group.tsx
+|   |   |   |   \-- tooltip.tsx
+|   |   |   \-- virsa
+|   |   |       |-- app-shell.tsx
+|   |   |       |-- auth-layout.tsx
+|   |   |       |-- badges.tsx
+|   |   |       |-- change-request-card.tsx
+|   |   |       |-- confirm-dialog.tsx
+|   |   |       |-- family-tree.tsx
+|   |   |       |-- logo.tsx
+|   |   |       |-- memory-card.tsx
+|   |   |       |-- modals.tsx
+|   |   |       |-- person-card.tsx
+|   |   |       |-- person-portrait.tsx
+|   |   |       |-- photo-gallery.tsx
+|   |   |       |-- section-heading.tsx
+|   |   |       |-- states.tsx
+|   |   |       \-- timeline.tsx
+|   |   |-- data
+|   |   |   |-- api.ts
+|   |   |   |-- mock.ts
+|   |   |   \-- types.ts
+|   |   |-- hooks
+|   |   |   \-- use-mobile.tsx
+|   |   |-- lib
+|   |   |   |-- error-capture.ts
+|   |   |   |-- error-page.ts
+|   |   |   |-- lovable-error-reporting.ts
+|   |   |   \-- utils.ts
+|   |   |-- routes
+|   |   |   |-- app
+|   |   |   |   |-- changes.tsx
+|   |   |   |   |-- index.tsx
+|   |   |   |   |-- members.tsx
+|   |   |   |   |-- memories.tsx
+|   |   |   |   |-- people.$personId.tsx
+|   |   |   |   |-- photos.tsx
+|   |   |   |   |-- route.tsx
+|   |   |   |   |-- settings.tsx
+|   |   |   |   \-- tree.tsx
+|   |   |   |-- __root.tsx
+|   |   |   |-- create-family.tsx
+|   |   |   |-- index.tsx
+|   |   |   |-- join-family.tsx
+|   |   |   |-- login.tsx
+|   |   |   |-- README.md
+|   |   |   \-- register.tsx
 |   |   |-- App.css
 |   |   |-- App.jsx
 |   |   |-- index.css
-|   |   \-- main.jsx
+|   |   |-- main.jsx
+|   |   |-- router.tsx
+|   |   |-- routeTree.gen.ts
+|   |   |-- server.ts
+|   |   |-- start.ts
+|   |   \-- styles.css
 |   |-- .gitignore
+|   |-- .prettierignore
+|   |-- .prettierrc
+|   |-- AGENTS.md
+|   |-- bun.lock
+|   |-- bunfig.toml
+|   |-- components.json
 |   |-- eslint.config.js
 |   |-- index.html
 |   |-- package.json
 |   |-- package-lock.json
 |   |-- README.md
-|   \-- vite.config.js
-|-- scripts
-|-- uploads
+|   |-- tsconfig.json
+|   \-- vite.config.ts
 |-- .env.example
 |-- .gitignore
+|-- h -u origin frontend-development
 |-- project-tree.txt
 |-- README.md
 \-- setup.ps1

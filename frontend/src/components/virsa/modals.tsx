@@ -1,0 +1,402 @@
+import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
+import { Copy, Sparkles } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { Person } from "@/data/types";
+import { FAMILY } from "@/data/mock";
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </Label>
+      {children}
+      {hint && <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+export function AddPersonModal({
+  people,
+  trigger,
+}: {
+  people: Person[];
+  trigger: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deceased, setDeceased] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Add a person</DialogTitle>
+          <DialogDescription>
+            Every person gets a stable identity in this archive. Relationships you propose are
+            confirmed by the family before they appear in the tree.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          className="space-y-5 py-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSaving(true);
+            setTimeout(() => {
+              setSaving(false);
+              setOpen(false);
+              toast.success("Person added", {
+                description: "Attributed to you and awaiting confirmation from the family.",
+              });
+            }, 700);
+          }}
+        >
+          <Field label="Full name">
+            <Input required placeholder="e.g. Muhammad Ahmed Khan" />
+          </Field>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Birth year">
+              <Input inputMode="numeric" placeholder="1942" />
+            </Field>
+            <Field label="Birth place">
+              <Input placeholder="Lahore" />
+            </Field>
+          </div>
+          <Field label="Relationship to">
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a person" />
+              </SelectTrigger>
+              <SelectContent>
+                {people.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Relationship type">
+            <Select defaultValue="child">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="child">Child of</SelectItem>
+                <SelectItem value="parent">Parent of</SelectItem>
+                <SelectItem value="spouse">Spouse of</SelectItem>
+                <SelectItem value="sibling">Sibling of</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <label className="flex items-center gap-3 text-sm">
+            <Checkbox checked={deceased} onCheckedChange={(v) => setDeceased(v === true)} />
+            This person has passed away
+          </label>
+          {deceased && (
+            <Field label="Year of death">
+              <Input inputMode="numeric" placeholder="2018" />
+            </Field>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Adding…" : "Add person"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function AddMemoryModal({
+  people,
+  trigger,
+  defaultPersonId,
+}: {
+  people: Person[];
+  trigger: ReactNode;
+  defaultPersonId?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Add a memory</DialogTitle>
+          <DialogDescription>
+            A memory is your own recollection — not a factual record. It will always carry your
+            name.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-5 py-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSaving(true);
+            setTimeout(() => {
+              setSaving(false);
+              setOpen(false);
+              toast.success("Memory added to the archive");
+            }, 700);
+          }}
+        >
+          <Field label="About">
+            <Select defaultValue={defaultPersonId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a person" />
+              </SelectTrigger>
+              <SelectContent>
+                {people.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Title">
+            <Input required placeholder="e.g. The 5:40 to Lahore" />
+          </Field>
+          <Field label="Year it happened">
+            <Input inputMode="numeric" placeholder="1988" />
+          </Field>
+          <Field label="The memory">
+            <Textarea required rows={6} placeholder="Write it the way you remember it…" />
+          </Field>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save memory"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function UploadPhotoModal({ trigger }: { trigger: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="border-border bg-card sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Upload a photograph</DialogTitle>
+          <DialogDescription>
+            Photographs are reviewed by a family admin before they join the gallery.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-5 py-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setOpen(false);
+            toast.success("Photograph uploaded", { description: "Awaiting review." });
+          }}
+        >
+          <div className="rounded-lg border border-dashed border-border bg-parchment/50 px-6 py-10 text-center">
+            <p className="text-sm text-muted-foreground">Drop a scan or photograph here</p>
+            <Button type="button" variant="outline" size="sm" className="mt-4">
+              Choose a file
+            </Button>
+          </div>
+          <Field label="Caption">
+            <Input required placeholder="Ahmed and Fatima on their wedding day" />
+          </Field>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Year">
+              <Input inputMode="numeric" placeholder="1965" />
+            </Field>
+            <Field label="Place">
+              <Input placeholder="Lahore" />
+            </Field>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Upload</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function InviteMemberModal({ trigger }: { trigger: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="border-border bg-card sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Invite a family member</DialogTitle>
+          <DialogDescription>
+            This family is private. People can only join with an invitation from an owner or admin.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5 py-2">
+          <Field label="Invitation code" hint="Share this only with people you know.">
+            <div className="flex gap-2">
+              <Input readOnly value={FAMILY.invitationCode} className="font-mono tracking-widest" />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Copy invitation code"
+                onClick={() => {
+                  navigator.clipboard?.writeText(FAMILY.invitationCode);
+                  toast.success("Invitation code copied");
+                }}
+              >
+                <Copy />
+              </Button>
+            </div>
+          </Field>
+          <Field label="Or invite by email">
+            <Input type="email" placeholder="name@example.com" />
+          </Field>
+          <Field label="Role">
+            <Select defaultValue="member">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin — can moderate and confirm changes</SelectItem>
+                <SelectItem value="member">Member — can contribute</SelectItem>
+                <SelectItem value="viewer">Viewer — can read only</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              toast.success("Invitation sent");
+            }}
+          >
+            Send invitation
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function AiStoryAssistant({ personName }: { personName: string }) {
+  const [notes, setNotes] = useState(
+    "Born Lahore 1942. Worked railway. Married 1965. Five children. Loved cricket.",
+  );
+  const [draft, setDraft] = useState<string | null>(null);
+  const [working, setWorking] = useState(false);
+
+  const generate = () => {
+    setWorking(true);
+    setDraft(null);
+    setTimeout(() => {
+      setDraft(
+        `${personName} was born in Lahore in 1942. He spent his working life with the railways, a career that shaped the rhythm of the household around timetables and postings. He married in 1965, and together the couple raised five children. Away from work he followed cricket closely — a devotion the family remembers as much as anything else about him.`,
+      );
+      setWorking(false);
+    }, 1100);
+  };
+
+  return (
+    <section
+      aria-labelledby="ai-assist-heading"
+      className="rounded-lg border border-border bg-card p-6"
+    >
+      <header className="flex items-start gap-3">
+        <Sparkles className="mt-0.5 size-4 text-gold" aria-hidden />
+        <div>
+          <h3 id="ai-assist-heading" className="font-display text-xl">
+            Turn rough notes into a story
+          </h3>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            Assistance with writing only. Nothing is published until a family member approves it —
+            the archive does not decide what is true.
+          </p>
+        </div>
+      </header>
+
+      <div className="mt-5 space-y-4">
+        <Field label="Your notes">
+          <Textarea
+            rows={4}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            aria-label="Rough notes for the story assistant"
+          />
+        </Field>
+        <Button onClick={generate} disabled={working} variant="gold">
+          {working ? "Drafting…" : "Draft a life story"}
+        </Button>
+
+        {working && (
+          <div className="space-y-2 rounded-md border border-dashed border-border p-5" aria-live="polite">
+            <div className="h-3 w-full animate-pulse rounded bg-muted" />
+            <div className="h-3 w-11/12 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
+          </div>
+        )}
+
+        {draft && (
+          <div className="fade-up rounded-md border border-gold/50 bg-gold/8 p-5">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-gold-foreground">
+              Draft — awaiting human approval
+            </p>
+            <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">{draft}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => toast.success("Draft accepted into the life story")}>
+                Accept draft
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => toast("Opened for editing")}>
+                Edit
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
+                Reject
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
