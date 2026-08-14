@@ -1,6 +1,6 @@
 ### Backend State here 
 
-Day 1 — Backend Auth & User Module (1.1–1.14)
+### Day 1 — Backend Auth & User Module (1.1–1.14)
 - Implemented full custom auth: registration, login, JWT access + rotating
   refresh tokens (httpOnly cookie), logout/logout-all, auth middleware.
 - Added password security: bcrypt hashing, strength validation, account
@@ -39,5 +39,24 @@ Completed Family Invitation API and invitation acceptance/rejection handling.
 Implemented Remove Member and Change Member Role APIs.
 Added Family privacy controls and Family access authorization.
 Backend work for items 2.1–2.15 is completed; frontend implementation remains separate.
+
+### Day 3 — People / Family Members Module (3.1–3.12)
+
+- Built the Person model, separate from User — a Person can exist in the
+  tree with zero account/login (per the "User ≠ Person" requirement).
+- Person CRUD: create, retrieve, update, archive/restore, permanent delete
+  (delete restricted to owner role only).
+- Birth/death data (dates + places), gender/demographic fields, and
+  biography all handled through a single update endpoint.
+- Search, filtering (gender, living/deceased, claimed status, archived),
+  and pagination on the people-list endpoint.
+- Authorization reuses Milestone 2's role system: viewer=read-only,
+  member+=create/edit, admin+=archive/claims, owner=permanent delete.
+- Implemented "claim this person" flow: a user can request to link
+  themselves to an existing Person record; admins approve/reject the
+  request, or link/unlink a person directly without a request.
+- Every Person has a permanent internal UUID, so edits/archiving never
+  create a new record or lose history.
+- Next: connect frontend People pages to these endpoints.
 
 ### Front End State here 
