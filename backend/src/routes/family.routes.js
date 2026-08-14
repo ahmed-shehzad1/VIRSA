@@ -8,6 +8,8 @@ const { loadFamilyContext, requireFamilyRole, blockIfArchived } = require('../mi
 const {
   createFamilyValidator, updateFamilyValidator, updatePrivacyValidator, inviteMemberValidator, changeRoleValidator,
 } = require('../validators/family.validator');
+const personController = require('../controllers/person.controller');
+const { createPersonValidator, updatePersonValidator, linkPersonValidator } = require('../validators/person.validator');
 
 router.use(requireAuth);
 
@@ -45,5 +47,31 @@ router.post('/:familyId/members/:userId/transfer-ownership', blockIfArchived, re
 router.post('/:familyId/invitations', blockIfArchived, requireFamilyRole('member'), inviteMemberValidator, validate, invitationController.inviteMember);
 router.get('/:familyId/invitations', requireFamilyRole('admin'), invitationController.listFamilyInvitations);
 router.delete('/:familyId/invitations/:invitationId', requireFamilyRole('admin'), invitationController.revokeInvitation);
+
+// ---------------- People (Milestone 3) ----------------
+
+// 3.1 / 3.2
+router.post('/:familyId/people', blockIfArchived, requireFamilyRole('member'), createPersonValidator, validate, personController.createPerson);
+router.get('/:familyId/people', personController.listPeople); // 3.2 / 3.8 / 3.9 / 3.10 (viewer+ can read)
+
+router.get('/:familyId/people/:personId', personController.getPerson);
+
+// 3.3 / 3.5 / 3.6 / 3.7
+router.patch('/:familyId/people/:personId', blockIfArchived, requireFamilyRole('member'), updatePersonValidator, validate, personController.updatePerson);
+
+// 3.4
+router.post('/:familyId/people/:personId/archive', requireFamilyRole('admin'), personController.archivePerson);
+router.post('/:familyId/people/:personId/restore', requireFamilyRole('admin'), personController.restorePerson);
+router.delete('/:familyId/people/:personId', requireFamilyRole('owner'), personController.deletePerson);
+
+// 3.12 - claim flow (self-service)
+router.post('/:familyId/people/:personId/claim', personController.requestClaim);
+router.get('/:familyId/people/:personId/claims', requireFamilyRole('admin'), personController.listClaims);
+router.post('/:familyId/people/:personId/claims/:claimId/approve', requireFamilyRole('admin'), personController.approveClaim);
+router.post('/:familyId/people/:personId/claims/:claimId/reject', requireFamilyRole('admin'), personController.rejectClaim);
+
+// 3.12 - direct admin link/unlink (no request needed)
+router.post('/:familyId/people/:personId/link', requireFamilyRole('admin'), linkPersonValidator, validate, personController.linkPersonToUser);
+router.delete('/:familyId/people/:personId/link', requireFamilyRole('admin'), personController.unlinkPerson);
 
 module.exports = router;
