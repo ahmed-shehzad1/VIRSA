@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { login } from "@/data/api";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/virsa/auth-layout";
 import { Button } from "@/components/ui/button";
@@ -49,21 +50,41 @@ function LoginPage() {
       <form
         className="space-y-5"
         noValidate
-        onSubmit={(e) => {
-          e.preventDefault();
-          const form = new FormData(e.currentTarget);
-          if (!String(form.get("email")).includes("@")) {
-            setError("Enter a valid email address.");
-            return;
-          }
-          setError(null);
-          setLoading(true);
-          setTimeout(() => {
-            setLoading(false);
-            toast.success("Welcome back");
-            navigate({ to: "/app" });
-          }, 800);
-        }}
+       onSubmit={async (e) => {
+  e.preventDefault();
+
+  const form = new FormData(e.currentTarget);
+  const email = String(form.get("email") || "").trim();
+  const password = String(form.get("password") || "");
+
+  if (!email.includes("@")) {
+    setError("Enter a valid email address.");
+    return;
+  }
+
+  if (!password) {
+    setError("Enter your password.");
+    return;
+  }
+
+  setError(null);
+  setLoading(true);
+
+  try {
+    await login(email, password);
+
+    toast.success("Welcome back");
+    navigate({ to: "/app" });
+  } catch (err: any) {
+    const message =
+      err?.response?.data?.message ||
+      "Unable to sign in. Please check your email and password.";
+
+    setError(message);
+  } finally {
+    setLoading(false);
+  }
+}}
       >
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>

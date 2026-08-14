@@ -1,10 +1,5 @@
-/**
- * Data access layer.
- *
- * Every screen reads through this module. Swapping the mock arrays for real
- * HTTP / server-function calls later requires no component changes — the
- * signatures already return promises.
- */
+import axios from "axios";
+
 import {
   CHANGE_REQUESTS,
   CURRENT_USER,
@@ -22,7 +17,24 @@ const LATENCY = 240;
 function resolve<T>(value: T, ms = LATENCY): Promise<T> {
   return new Promise((r) => setTimeout(() => r(value), ms));
 }
+const API_URL = import.meta.env.VITE_API_URL;
 
+const http = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export async function login(email: string, password: string) {
+  const response = await http.post("/auth/login", {
+    email,
+    password,
+  });
+
+  return response.data;
+}
 export const api = {
   getFamily: () => resolve<Family>(FAMILY),
   getCurrentUser: () => resolve(CURRENT_USER),
