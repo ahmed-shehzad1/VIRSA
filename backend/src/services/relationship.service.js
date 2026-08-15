@@ -55,7 +55,7 @@ async function createParentChild(familyId, actorId, { parentId, childId }) {
   await assertPersonInFamily(childId, familyId, 'Child');
   await assertNoExistingRelationship(familyId, parentId, childId);
 
-  const wouldCycle = await isAncestor(parentId, childId) === false && (await isAncestor(childId, parentId));
+  const wouldCycle = await isAncestor(childId, parentId);
   if (wouldCycle) {
     throw ApiError.badRequest(
       'This would create a circular ancestry (the child is already an ancestor of the parent)',
