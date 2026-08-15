@@ -50,7 +50,7 @@ function LoginPage() {
       <form
         className="space-y-5"
         noValidate
-       onSubmit={async (e) => {
+    onSubmit={async (e) => {
   e.preventDefault();
 
   const form = new FormData(e.currentTarget);
@@ -78,7 +78,7 @@ function LoginPage() {
   } catch (err: any) {
     const message =
       err?.response?.data?.message ||
-      "Unable to sign in. Please check your email and password.";
+      "Invalid email or password.";
 
     setError(message);
   } finally {
