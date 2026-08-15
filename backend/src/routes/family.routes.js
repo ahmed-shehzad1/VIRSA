@@ -10,6 +10,8 @@ const {
 } = require('../validators/family.validator');
 const personController = require('../controllers/person.controller');
 const { createPersonValidator, updatePersonValidator, linkPersonValidator } = require('../validators/person.validator');
+const relationshipController = require('../controllers/relationship.controller');
+const { parentChildValidator, spouseValidator, siblingValidator } = require('../validators/relationship.validator');
 
 router.use(requireAuth);
 
@@ -73,5 +75,23 @@ router.post('/:familyId/people/:personId/claims/:claimId/reject', requireFamilyR
 // 3.12 - direct admin link/unlink (no request needed)
 router.post('/:familyId/people/:personId/link', requireFamilyRole('admin'), linkPersonValidator, validate, personController.linkPersonToUser);
 router.delete('/:familyId/people/:personId/link', requireFamilyRole('admin'), personController.unlinkPerson);
+
+// ---------------- Relationships (Milestone 4) ----------------
+
+// 4.2
+router.post('/:familyId/relationships/parent-child', blockIfArchived, requireFamilyRole('member'), parentChildValidator, validate, relationshipController.createParentChild);
+
+// 4.3
+router.post('/:familyId/relationships/spouse', blockIfArchived, requireFamilyRole('member'), spouseValidator, validate, relationshipController.createSpouse);
+
+// 4.4
+router.post('/:familyId/relationships/sibling', blockIfArchived, requireFamilyRole('member'), siblingValidator, validate, relationshipController.createSibling);
+
+// 4.8
+router.delete('/:familyId/relationships/:relationshipId', requireFamilyRole('admin'), relationshipController.deleteRelationship);
+
+// 4.9
+router.get('/:familyId/relationships', relationshipController.getFamilyRelationships);
+router.get('/:familyId/people/:personId/relationships', relationshipController.getPersonRelationships);
 
 module.exports = router;
