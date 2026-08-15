@@ -14,19 +14,6 @@
 - Server verified running locally; Supabase schema + storage bucket set up.
 - Next: connect frontend auth pages to these endpoints.
 
-Frontend pages needed to match this (from your original table):
-
-Page	Talks to
-Registration page	POST /auth/register
-Login page	POST /auth/login
-Forgot-password page	POST /auth/forgot-password
-Reset-password page (from email link, reads ?token=)	POST /auth/reset-password
-Email verification page (from email link, reads ?token=)	POST /auth/verify-email or GET /auth/verify-email?token=
-Account settings page (profile edit)	GET /users/me, PATCH /users/me
-Profile/avatar upload UI (can live inside settings page)	POST /users/me/avatar, DELETE /users/me/avatar
-Delete-account UI (can live inside settings page, with a password-confirm modal)	DELETE /users/me
-Logout button/action (no dedicated page)	POST /auth/logout
-Protected-route wrapper (not a page — a component/HOC that checks login state and redirects)
 
 ### Day 2 — 
 Completed the Family Creation API and related backend validation.
@@ -58,5 +45,26 @@ Backend work for items 2.1–2.15 is completed; frontend implementation remains 
 - Every Person has a permanent internal UUID, so edits/archiving never
   create a new record or lose history.
 - Next: connect frontend People pages to these endpoints.
+
+
+### Day 4 — Family Relationships Module (4.1–4.10)
+
+- Built the Relationship model supporting parent/child, spouse, and
+  sibling as the three core MVP relationship types.
+- Parent/child API with cycle prevention (BFS ancestor check blocks
+  circular ancestry, e.g. someone becoming their own ancestor).
+- Spouse relationship API with status tracking (married/divorced/
+  widowed/separated) and optional start/end dates.
+- Sibling relationship API with sibling type (full/half/step).
+- Duplicate and conflicting-relationship prevention: two people can only
+  have one direct relationship type between them, checked both directions
+  plus enforced with a DB-level unique constraint.
+- Relationship deletion (admin+ only) and retrieval — both a full
+  family relationship graph and a single person's categorized
+  relationships (parents/children/spouses/siblings).
+- Authorization follows the existing role system: member+ creates,
+  admin+ deletes, viewer+ can read.
+- Next: connect frontend relationship UI (add parent/child/spouse/
+  sibling forms, relationship display) to these endpoints.
 
 ### Front End State here 
