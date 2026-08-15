@@ -1,6 +1,6 @@
+import { login } from "@/data/api";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { login } from "@/data/api";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/virsa/auth-layout";
 import { Button } from "@/components/ui/button";

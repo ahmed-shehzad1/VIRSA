@@ -17,7 +17,7 @@ const LATENCY = 240;
 function resolve<T>(value: T, ms = LATENCY): Promise<T> {
   return new Promise((r) => setTimeout(() => r(value), ms));
 }
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const http = axios.create({
   baseURL: API_URL,
