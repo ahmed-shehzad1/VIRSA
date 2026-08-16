@@ -12,6 +12,7 @@ const personController = require('../controllers/person.controller');
 const { createPersonValidator, updatePersonValidator, linkPersonValidator } = require('../validators/person.validator');
 const relationshipController = require('../controllers/relationship.controller');
 const { parentChildValidator, spouseValidator, siblingValidator } = require('../validators/relationship.validator');
+const treeController = require('../controllers/tree.controller');
 
 router.use(requireAuth);
 
@@ -93,5 +94,21 @@ router.delete('/:familyId/relationships/:relationshipId', requireFamilyRole('adm
 // 4.9
 router.get('/:familyId/relationships', relationshipController.getFamilyRelationships);
 router.get('/:familyId/people/:personId/relationships', relationshipController.getPersonRelationships);
+
+
+// ---------------- Family Tree (Milestone 5) ----------------
+
+// 5.1 / 5.3 / 5.8 - full or windowed tree: ?rootPersonId=&depth=&maxNodes=
+router.get('/:familyId/tree', treeController.getTree);
+
+// 5.3 - suggested default root person
+router.get('/:familyId/tree/root', treeController.getSuggestedRoot);
+
+// 5.4 / 5.5
+router.get('/:familyId/people/:personId/ancestors', treeController.getAncestors);
+router.get('/:familyId/people/:personId/descendants', treeController.getDescendants);
+
+// 5.9
+router.get('/:familyId/people/:personId/node', treeController.getPersonNode);
 
 module.exports = router;
