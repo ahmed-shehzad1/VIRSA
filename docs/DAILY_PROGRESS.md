@@ -67,4 +67,37 @@ Backend work for items 2.1–2.15 is completed; frontend implementation remains 
 - Next: connect frontend relationship UI (add parent/child/spouse/
   sibling forms, relationship display) to these endpoints.
 
+###  Day 5 — Family Tree Visualization + Person Profile (Milestones 5–6)
+
+Milestone 5 — Family Tree
+- Built a graph traversal layer over the People/Relationships tables:
+  full-family tree, ancestor traversal, descendant traversal, all
+  returned as plain nodes/edges arrays for React Flow to lay out.
+- Root-person resolution with a sensible default (oldest person with
+  no recorded parents) when the frontend hasn't picked a starting point.
+- Spouses auto-included alongside any person in a result set, with
+  marriage status carried on the edge.
+- Large-tree protection: results capped (default 300 / hard cap 1000
+  nodes), with rootPersonId + depth windowing so big families don't
+  return a massive payload in one call.
+- Single-node endpoint for the info-card that appears when a node
+  is clicked, with immediate relations resolved.
+- Authorization reuses existing family-membership checks — no separate
+  tree-specific permission system needed.
+
+### Milestone 6 — Person Profile
+- Added Media (photos/documents via Supabase Storage) and Memories
+  (family-contributed stories) as new entities linked to a Person.
+- Built a single aggregated profile endpoint returning biography,
+  relationships, birth/death info, media, memories, and a computed
+  timeline in one call — plus separate section endpoints for lazy-loading.
+- Timeline is assembled dynamically from birth/death dates, marriage
+  dates, and dated memories — no separate event table to keep in sync.
+- Deceased-person handling: a single `deceased` flag plus conditional
+  death fields, so the frontend can adjust presentation cleanly.
+- Added per-person and per-memory privacy control (all_members vs
+  admins_only), enforced on every read path.
+- Next: connect frontend Tree page (React Flow) and Person Profile
+  page to these endpoints.
+
 ### Front End State here 
