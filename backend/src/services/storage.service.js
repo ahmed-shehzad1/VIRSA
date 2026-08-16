@@ -33,4 +33,26 @@ async function deleteAvatar(path) {
   }
 }
 
+const PERSON_MEDIA_BUCKET = 'person-media';
+
+async function uploadPersonMedia(personId, file) {
+  const ext = (file.originalname.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${personId}/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage.from(PERSON_MEDIA_BUCKET).upload(path, file.buffer, {
+    contentType: file.mimetype,
+    upsert: false,
+  });
+  if (error) throw ApiError.internal(`Media upload failed: ${error.message}`);
+
+  const { data: publicUrlData } = supabase.storage.from(PERSON_MEDIA_BUCKET).getPublicUrl(path);
+  return { path, publicUrl: publicUrlData.publicUrl };
+}
+
+async function deletePersonMedia(path) {
+  if (!path) return;
+  const { error } = await supabase.storage.from(PERSON_MEDIA_BUCKET).remove([path]);
+  if (error) console.error('[storage.service] Failed to delete person media:', error.message);
+}
+
 module.exports = { uploadAvatar, deleteAvatar, BUCKET };
