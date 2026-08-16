@@ -55,4 +55,4 @@ async function deletePersonMedia(path) {
   if (error) console.error('[storage.service] Failed to delete person media:', error.message);
 }
 
-module.exports = { uploadAvatar, deleteAvatar, BUCKET };
+module.exports = { uploadAvatar, deleteAvatar,uploadPersonMedia, deletePersonMedia, PERSON_MEDIA_BUCKET, BUCKET };
