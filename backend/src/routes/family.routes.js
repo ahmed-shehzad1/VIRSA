@@ -13,6 +13,9 @@ const { createPersonValidator, updatePersonValidator, linkPersonValidator } = re
 const relationshipController = require('../controllers/relationship.controller');
 const { parentChildValidator, spouseValidator, siblingValidator } = require('../validators/relationship.validator');
 const treeController = require('../controllers/tree.controller');
+const profileController = require('../controllers/profile.controller');
+const { handleMediaUpload } = require('../middleware/mediaUpload.middleware');
+const { visibilityValidator, addMemoryValidator, updateMemoryValidator } = require('../validators/profile.validator');
 
 router.use(requireAuth);
 
@@ -110,5 +113,34 @@ router.get('/:familyId/people/:personId/descendants', treeController.getDescenda
 
 // 5.9
 router.get('/:familyId/people/:personId/node', treeController.getPersonNode);
+
+
+// ---------------- Person Profile (Milestone 6) ----------------
+
+// 6.1
+router.get('/:familyId/people/:personId/profile', profileController.getFullProfile);
+
+// 6.2 / 6.3 / 6.4
+router.get('/:familyId/people/:personId/biography', profileController.getBiography);
+router.get('/:familyId/people/:personId/profile-relationships', profileController.getRelationships);
+router.get('/:familyId/people/:personId/dates', profileController.getDatesInfo);
+
+// 6.9 - only admins can change who's allowed to see a restricted profile
+router.patch('/:familyId/people/:personId/visibility', requireFamilyRole('admin'), visibilityValidator, validate, profileController.updateVisibility);
+
+// 6.5 - media
+router.post('/:familyId/people/:personId/media', blockIfArchived, requireFamilyRole('member'), handleMediaUpload, profileController.uploadMedia);
+router.get('/:familyId/people/:personId/media', profileController.listMedia);
+router.delete('/:familyId/people/:personId/media/:mediaId', requireFamilyRole('admin'), profileController.deleteMedia);
+
+// 6.6 - memories
+router.post('/:familyId/people/:personId/memories', blockIfArchived, requireFamilyRole('member'), addMemoryValidator, validate, profileController.addMemory);
+router.get('/:familyId/people/:personId/memories', profileController.listMemories);
+router.patch('/:familyId/people/:personId/memories/:memoryId', updateMemoryValidator, validate, profileController.updateMemory);
+router.delete('/:familyId/people/:personId/memories/:memoryId', profileController.deleteMemory);
+
+// 6.7 - timeline is included in the full profile response (see 6.1);
+// exposed separately too, in case the frontend wants to lazy-load just this section
+router.get('/:familyId/people/:personId/timeline', profileController.getTimeline);
 
 module.exports = router;

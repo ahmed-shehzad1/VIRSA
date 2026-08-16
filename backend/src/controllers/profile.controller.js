@@ -66,7 +66,12 @@ const deleteMemory = catchAsync(async (req, res) => {
   new ApiResponse(200, null, 'Memory deleted').send(res);
 });
 
+const getTimeline = catchAsync(async (req, res) => {
+  const profile = await profileService.getFullProfile(req.family.id, req.params.personId, req.membership);
+  new ApiResponse(200, { timeline: profile.timeline }).send(res);
+});
+
 module.exports = {
   getFullProfile, getBiography, getRelationships, getDatesInfo, updateVisibility,
-  uploadMedia, listMedia, deleteMedia, addMemory, listMemories, updateMemory, deleteMemory,
+  uploadMedia, listMedia, deleteMedia, addMemory, listMemories, updateMemory, deleteMemory, getTimeline,
 };
