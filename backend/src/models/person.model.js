@@ -57,5 +57,18 @@ async function findMany(familyId, { search, gender, isLiving, isArchived, claime
   if (error) throw error;
   return { people: data, total: count };
 }
+// lean projection for tree rendering - skips biography/full details
+async function findAllByFamily(familyId, { includeArchived = false } = {}) {
+  let query = supabase
+    .from('people')
+    .select('id, first_name, last_name, gender, birth_date, death_date, is_living, photo_url, claimed_by_user_id, is_archived')
+    .eq('family_id', familyId);
 
-module.exports = { create, findById, updateById, archiveById, restoreById, deleteById, findMany };
+  if (!includeArchived) query = query.eq('is_archived', false);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}
+
+module.exports = { create, findById, updateById, archiveById, restoreById, deleteById, findMany, findAllByFamily };
