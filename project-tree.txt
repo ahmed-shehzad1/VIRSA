@@ -9,22 +9,32 @@ VIRSA PROJECT DIRECTORY TREE
 |   |   |   \-- supabase.js
 |   |   |-- controllers
 |   |   |   |-- auth.controller.js
+|   |   |   |-- family.controller.js
+|   |   |   |-- invitation.controller.js
 |   |   |   \-- user.controller.js
 |   |   |-- middleware
 |   |   |   |-- auth.middleware.js
 |   |   |   |-- error.middleware.js
+|   |   |   |-- family.middleware.js
 |   |   |   |-- rateLimiters.js
 |   |   |   |-- upload.middleware.js
 |   |   |   \-- validate.middleware.js
 |   |   |-- models
+|   |   |   |-- family.model.js
+|   |   |   |-- familyInvitation.model.js
+|   |   |   |-- familyMember.model.js
 |   |   |   \-- user.model.js
 |   |   |-- routes
 |   |   |   |-- auth.routes.js
+|   |   |   |-- family.routes.js
 |   |   |   |-- index.js
+|   |   |   |-- invitation.routes.js
 |   |   |   \-- user.routes.js
 |   |   |-- services
 |   |   |   |-- auth.service.js
 |   |   |   |-- email.service.js
+|   |   |   |-- family.service.js
+|   |   |   |-- invitation.service.js
 |   |   |   |-- storage.service.js
 |   |   |   |-- token.service.js
 |   |   |   \-- user.service.js
@@ -35,9 +45,11 @@ VIRSA PROJECT DIRECTORY TREE
 |   |   |   |-- cookies.util.js
 |   |   |   |-- parseDuration.js
 |   |   |   |-- password.util.js
+|   |   |   |-- roles.js
 |   |   |   \-- token.util.js
 |   |   |-- validators
 |   |   |   |-- auth.validator.js
+|   |   |   |-- family.validator.js
 |   |   |   \-- user.validator.js
 |   |   |-- app.js
 |   |   \-- server.js
@@ -50,6 +62,9 @@ VIRSA PROJECT DIRECTORY TREE
 |   \-- schema
 |       \-- schema.sql
 |-- docs
+|   |-- api
+|   |-- architecture
+|   |-- daily_progress
 |   |-- docs
 |   |   \-- FRONTEND_CONTRIBUTOR.md
 |   |-- API.md
@@ -107,6 +122,7 @@ VIRSA PROJECT DIRECTORY TREE
 |   |   |   |   |-- popover.tsx
 |   |   |   |   |-- progress.tsx
 |   |   |   |   |-- radio-group.tsx
+|   |   |   |   |-- resizable.tsx
 |   |   |   |   |-- scroll-area.tsx
 |   |   |   |   |-- select.tsx
 |   |   |   |   |-- separator.tsx
@@ -190,9 +206,11 @@ VIRSA PROJECT DIRECTORY TREE
 |   |-- README.md
 |   |-- tsconfig.json
 |   \-- vite.config.ts
+|-- scripts
+|-- uploads
 |-- .env.example
 |-- .gitignore
-|-- h -u origin frontend-development
+|-- package-lock.json
 |-- project-tree.txt
 |-- README.md
 \-- setup.ps1

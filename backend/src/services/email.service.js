@@ -36,6 +36,17 @@ async function sendMail({ to, subject, html, text }) {
   return t.sendMail({ from: config.smtp.from, to, subject, html, text });
 }
 
+async function sendFamilyInvitationEmail(toEmail, rawToken, familyName) {
+  const link = `${config.clientUrl}/invitations/${rawToken}`;
+  return sendMail({
+    to: toEmail,
+    subject: `You've been invited to join "${familyName}" on Virsa`,
+    html: `<p>You've been invited to join <strong>${familyName}</strong> on Virsa.</p>
+           <p><a href="${link}">View invitation</a></p>`,
+    text: `View your invitation: ${link}`,
+  });
+}
+
 async function sendVerificationEmail(toEmail, rawToken) {
   const link = `${config.clientUrl}/verify-email?token=${rawToken}`;
   return sendMail({
@@ -61,4 +72,4 @@ async function sendPasswordResetEmail(toEmail, rawToken) {
   });
 }
 
-module.exports = { sendMail, sendVerificationEmail, sendPasswordResetEmail };
+module.exports = { sendMail, sendVerificationEmail, sendPasswordResetEmail, sendFamilyInvitationEmail };

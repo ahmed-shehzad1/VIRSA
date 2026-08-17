@@ -37,6 +37,7 @@ module.exports = {
   tokens: {
     emailVerificationExpiresInMin: Number(process.env.EMAIL_VERIFICATION_EXPIRES_IN_MIN || 60),
     passwordResetExpiresInMin: Number(process.env.PASSWORD_RESET_EXPIRES_IN_MIN || 30),
+    familyInviteExpiresInMin: Number(process.env.FAMILY_INVITE_EXPIRES_IN_MIN || 4320), // 3 days
   },
 
   security: {
