@@ -71,4 +71,14 @@ async function findAllByFamily(familyId, { includeArchived = false } = {}) {
   return data;
 }
 
-module.exports = { create, findById, updateById, archiveById, restoreById, deleteById, findMany, findAllByFamily };
+async function findBiographyFields(id) {
+  const { data, error } = await supabase
+    .from('people')
+    .select('id, family_id, biography, biography_status, biography_author_id, biography_updated_at')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+module.exports = { create, findById, updateById, archiveById, restoreById, deleteById, findMany, findAllByFamily,  findBiographyFields };
