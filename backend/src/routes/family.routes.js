@@ -16,6 +16,8 @@ const treeController = require('../controllers/tree.controller');
 const profileController = require('../controllers/profile.controller');
 const { handleMediaUpload } = require('../middleware/mediaUpload.middleware');
 const { visibilityValidator, addMemoryValidator, updateMemoryValidator } = require('../validators/profile.validator');
+const storyController = require('../controllers/story.controller');
+const { saveBiographyValidator, flagValidator, resolveFlagValidator } = require('../validators/story.validator');
 
 router.use(requireAuth);
 
@@ -142,5 +144,21 @@ router.delete('/:familyId/people/:personId/memories/:memoryId', profileControlle
 // 6.7 - timeline is included in the full profile response (see 6.1);
 // exposed separately too, in case the frontend wants to lazy-load just this section
 router.get('/:familyId/people/:personId/timeline', profileController.getTimeline);
+
+
+// ---------------- Life Stories (Milestone 7) ----------------
+
+// 7.1 / 7.2
+router.put('/:familyId/people/:personId/story', blockIfArchived, requireFamilyRole('member'), saveBiographyValidator, validate, storyController.saveBiography);
+router.get('/:familyId/people/:personId/story', storyController.getBiography);
+
+// 7.3
+router.get('/:familyId/people/:personId/story/history', storyController.getHistory);
+router.post('/:familyId/people/:personId/story/versions/:versionId/restore', blockIfArchived, requireFamilyRole('member'), storyController.restoreVersion);
+
+// 7.5 - report a story (any member) / review reports (admin+)
+router.post('/:familyId/people/:personId/story/flag', requireFamilyRole('member'), flagValidator, validate, storyController.flagBiography);
+router.get('/:familyId/story-flags', requireFamilyRole('admin'), storyController.listPendingFlags);
+router.patch('/:familyId/story-flags/:flagId/resolve', requireFamilyRole('admin'), resolveFlagValidator, validate, storyController.resolveFlag);
 
 module.exports = router;
