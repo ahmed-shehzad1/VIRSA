@@ -15,7 +15,9 @@ const { parentChildValidator, spouseValidator, siblingValidator } = require('../
 const treeController = require('../controllers/tree.controller');
 const profileController = require('../controllers/profile.controller');
 const { handleMediaUpload } = require('../middleware/mediaUpload.middleware');
-const { visibilityValidator, addMemoryValidator, updateMemoryValidator } = require('../validators/profile.validator');
+const { visibilityValidator } = require('../validators/profile.validator');
+const memoryFeedController = require('../controllers/memoryFeed.controller');
+const { createMemoryValidator, updateMemoryValidator, flagMemoryValidator, resolveFlagValidator } = require('../validators/memory.validator');
 const storyController = require('../controllers/story.controller');
 const { saveBiographyValidator, flagValidator, resolveFlagValidator } = require('../validators/story.validator');
 
@@ -136,7 +138,7 @@ router.get('/:familyId/people/:personId/media', profileController.listMedia);
 router.delete('/:familyId/people/:personId/media/:mediaId', requireFamilyRole('admin'), profileController.deleteMedia);
 
 // 6.6 - memories
-router.post('/:familyId/people/:personId/memories', blockIfArchived, requireFamilyRole('member'), addMemoryValidator, validate, profileController.addMemory);
+router.post('/:familyId/people/:personId/memories', blockIfArchived, requireFamilyRole('member'), createMemoryValidator, validate, profileController.addMemory);
 router.get('/:familyId/people/:personId/memories', profileController.listMemories);
 router.patch('/:familyId/people/:personId/memories/:memoryId', updateMemoryValidator, validate, profileController.updateMemory);
 router.delete('/:familyId/people/:personId/memories/:memoryId', profileController.deleteMemory);
@@ -160,5 +162,15 @@ router.post('/:familyId/people/:personId/story/versions/:versionId/restore', blo
 router.post('/:familyId/people/:personId/story/flag', requireFamilyRole('member'), flagValidator, validate, storyController.flagBiography);
 router.get('/:familyId/story-flags', requireFamilyRole('admin'), storyController.listPendingFlags);
 router.patch('/:familyId/story-flags/:flagId/resolve', requireFamilyRole('admin'), resolveFlagValidator, validate, storyController.resolveFlag);
+
+// ---------------- Family Memory Feed & Moderation (Milestone 8) ----------------
+
+router.post('/:familyId/memories', blockIfArchived, requireFamilyRole('member'), createMemoryValidator, validate, memoryFeedController.createFamilyMemory);
+router.get('/:familyId/memories', memoryFeedController.listFamilyMemories); // ?page=&limit=
+router.get('/:familyId/memories/:memoryId', memoryFeedController.getMemory);
+
+router.post('/:familyId/memories/:memoryId/flag', requireFamilyRole('member'), flagMemoryValidator, validate, memoryFeedController.flagMemory);
+router.get('/:familyId/memory-flags', requireFamilyRole('admin'), memoryFeedController.listPendingFlags);
+router.patch('/:familyId/memory-flags/:flagId/resolve', requireFamilyRole('admin'), resolveFlagValidator, validate, memoryFeedController.resolveFlag);
 
 module.exports = router;
