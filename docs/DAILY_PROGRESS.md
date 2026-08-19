@@ -100,4 +100,22 @@ Milestone 5 — Family Tree
 - Next: connect frontend Tree page (React Flow) and Person Profile
   page to these endpoints.
 
+### Day 7 — Life Stories Module (7.1–7.5)
+
+- Built dedicated biography read/write endpoints on top of the Person
+  model's biography field (create = editing an empty story, update =
+  editing an existing one).
+- Added version history: every time a story's content changes, the
+  previous version is snapshotted before being overwritten, with a
+  restore endpoint to bring back an older version (itself tracked as
+  a new edit, so nothing is lost).
+- Editing permissions: first-ever write is open to any member
+  (claims authorship); after that, only the original author or a
+  family admin can edit.
+- Moderation: any member can flag/report a story with a reason;
+  admins review a per-family queue and resolve by hiding the story
+  or dismissing the report.
+- Next: connect frontend story editor, history view, and moderation
+  indicators to these endpoints.  
+
 ### Front End State here 
