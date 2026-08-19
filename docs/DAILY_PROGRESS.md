@@ -118,4 +118,27 @@ Milestone 5 — Family Tree
 - Next: connect frontend story editor, history view, and moderation
   indicators to these endpoints.  
 
+
+### Day 8 — Memories Module (8.1–8.9)
+
+- Built Memory CRUD (create/retrieve/edit/delete), deliberately
+  separate from Life Stories - memories are personal, author-attributed
+  recollections, not versioned factual records, so there's no edit
+  history here by design.
+- Author tracking on every memory, returned with each read so the
+  frontend always has attribution without extra calls.
+- Two-tier privacy (all_members / admins_only) enforced on every
+  read path, for both person-scoped and family-wide views.
+- Person-memory association: a memory can name one primary person
+  plus a tagged-people list, so it surfaces on multiple people's
+  pages.
+- Family-memory association: added a family-wide paginated memory
+  feed, separate from the per-person view.
+- Moderation: members can flag a memory with a reason; admins get a
+  review queue per family and resolve by hiding it or dismissing
+  the report.
+- Next: connect frontend Add/Edit Memory, memory feed, and
+  moderation indicators to these endpoints.
+
+
 ### Front End State here 
