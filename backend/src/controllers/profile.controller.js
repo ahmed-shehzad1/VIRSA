@@ -47,22 +47,25 @@ const deleteMedia = catchAsync(async (req, res) => {
 
 // 6.6 - memories
 const addMemory = catchAsync(async (req, res) => {
-  const memory = await memoryService.addMemory(req.family.id, req.params.personId, req.membership, req.user.id, req.body);
+  const memory = await memoryService.createMemory(req.family.id, req.membership, req.user.id, {
+    personId: req.params.personId,
+    ...req.body,
+  });
   new ApiResponse(201, { memory }, 'Memory added').send(res);
 });
 
 const listMemories = catchAsync(async (req, res) => {
-  const memories = await memoryService.listMemories(req.family.id, req.params.personId, req.membership);
+  const memories = await memoryService.listForPerson(req.family.id, req.params.personId, req.membership);
   new ApiResponse(200, { memories }).send(res);
 });
 
 const updateMemory = catchAsync(async (req, res) => {
-  const memory = await memoryService.updateMemory(req.family.id, req.params.personId, req.params.memoryId, req.user.id, req.membership, req.body);
+  const memory = await memoryService.updateMemory(req.family.id, req.params.memoryId, req.user.id, req.membership, req.body);
   new ApiResponse(200, { memory }, 'Memory updated').send(res);
 });
 
 const deleteMemory = catchAsync(async (req, res) => {
-  await memoryService.deleteMemory(req.family.id, req.params.personId, req.params.memoryId, req.user.id, req.membership);
+  await memoryService.deleteMemory(req.family.id, req.params.memoryId, req.user.id, req.membership);
   new ApiResponse(200, null, 'Memory deleted').send(res);
 });
 
