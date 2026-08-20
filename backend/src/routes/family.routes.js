@@ -22,6 +22,8 @@ const storyController = require('../controllers/story.controller');
 const { saveBiographyValidator, flagValidator, resolveFlagValidator } = require('../validators/story.validator');
 const mediaController = require('../controllers/media.controller');
 const { uploadMediaValidator, updateMediaValidator } = require('../validators/media.validator');
+const timelineEventController = require('../controllers/timelineEvent.controller');
+const { createEventValidator, updateEventValidator } = require('../validators/timelineEvent.validator');
 
 router.use(requireAuth);
 
@@ -184,5 +186,14 @@ router.get('/:familyId/people/:personId/media', mediaController.listForPerson);
 
 // 9.4 - memory gallery
 router.get('/:familyId/memories/:memoryId/media', mediaController.listForMemory);
+
+
+// ---------------- Timeline (Milestone 10) ----------------
+
+router.post('/:familyId/people/:personId/timeline-events', blockIfArchived, requireFamilyRole('member'), createEventValidator, validate, timelineEventController.createEvent);
+router.get('/:familyId/people/:personId/timeline-events', timelineEventController.listEvents); // ?order=asc|desc
+router.get('/:familyId/timeline-events/:eventId', timelineEventController.getEvent);
+router.patch('/:familyId/timeline-events/:eventId', updateEventValidator, validate, timelineEventController.updateEvent);
+router.delete('/:familyId/timeline-events/:eventId', timelineEventController.deleteEvent);
 
 module.exports = router;
