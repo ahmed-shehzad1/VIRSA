@@ -140,5 +140,24 @@ Milestone 5 — Family Tree
 - Next: connect frontend Add/Edit Memory, memory feed, and
   moderation indicators to these endpoints.
 
+### Day 9 — Photos & Media + Timeline (Milestones 9)
+
+Milestone 9 — Photos & Media
+- Extended person_media to support photos linked to either a Person or
+  a Memory, satisfying both association requirements from one table.
+- Real thumbnail generation on upload (via sharp) — a resized, compressed
+  copy is generated and stored alongside the original, so galleries can
+  load fast previews instead of full-resolution images.
+- Upload validation: file type restricted to jpeg/png/webp/gif/pdf,
+  10MB size limit, enforced before any storage write happens.
+- Metadata (caption, taken date) editable after upload, separate from
+  the delete permission.
+- Authorization: only the uploader or a family admin can edit/delete
+  a photo; all reads still gated by family membership.
+- Media storage stays in Supabase Storage (not the database), same
+  pattern as avatars from Milestone 1 - dedicated file storage, not
+  Postgres blobs.
+
+
 
 ### Front End State here 
