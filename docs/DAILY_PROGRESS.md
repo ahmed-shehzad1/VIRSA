@@ -158,6 +158,22 @@ Milestone 9 — Photos & Media
   pattern as avatars from Milestone 1 - dedicated file storage, not
   Postgres blobs.
 
+### Day 10 — Photos & Media + Timeline (Milestones 10)  
 
+Milestone 10 — Timeline
+- Built a dedicated timeline_events table for manually-created life
+  events (education, career, relocation, achievement, etc.), separate
+  from Milestone 6's auto-assembled timeline (birth/death/marriage/
+  memories).
+- Full event CRUD with category tagging and date-range support
+  (single date or a date + end date, e.g. "lived in Lahore
+  2015-2019").
+- Date validation prevents an end date before the start date.
+- Events always sorted chronologically on retrieval, with an
+  ascending/descending toggle.
+- Authorization: only the event's creator or a family admin can
+  edit/delete it; any member can add one.
+- Next: connect frontend photo gallery/upload UI and the Add/Edit
+  Event timeline UI to these endpoints.  
 
 ### Front End State here 
