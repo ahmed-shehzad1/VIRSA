@@ -20,6 +20,8 @@ const memoryFeedController = require('../controllers/memoryFeed.controller');
 const { createMemoryValidator, updateMemoryValidator, flagMemoryValidator, resolveFlagValidator } = require('../validators/memory.validator');
 const storyController = require('../controllers/story.controller');
 const { saveBiographyValidator, flagValidator, resolveFlagValidator } = require('../validators/story.validator');
+const mediaController = require('../controllers/media.controller');
+const { uploadMediaValidator, updateMediaValidator } = require('../validators/media.validator');
 
 router.use(requireAuth);
 
@@ -132,10 +134,7 @@ router.get('/:familyId/people/:personId/dates', profileController.getDatesInfo);
 // 6.9 - only admins can change who's allowed to see a restricted profile
 router.patch('/:familyId/people/:personId/visibility', requireFamilyRole('admin'), visibilityValidator, validate, profileController.updateVisibility);
 
-// 6.5 - media
-router.post('/:familyId/people/:personId/media', blockIfArchived, requireFamilyRole('member'), handleMediaUpload, profileController.uploadMedia);
-router.get('/:familyId/people/:personId/media', profileController.listMedia);
-router.delete('/:familyId/people/:personId/media/:mediaId', requireFamilyRole('admin'), profileController.deleteMedia);
+
 
 // 6.6 - memories
 router.post('/:familyId/people/:personId/memories', blockIfArchived, requireFamilyRole('member'), createMemoryValidator, validate, profileController.addMemory);
@@ -172,5 +171,18 @@ router.get('/:familyId/memories/:memoryId', memoryFeedController.getMemory);
 router.post('/:familyId/memories/:memoryId/flag', requireFamilyRole('member'), flagMemoryValidator, validate, memoryFeedController.flagMemory);
 router.get('/:familyId/memory-flags', requireFamilyRole('admin'), memoryFeedController.listPendingFlags);
 router.patch('/:familyId/memory-flags/:flagId/resolve', requireFamilyRole('admin'), resolveFlagValidator, validate, memoryFeedController.resolveFlag);
+
+// ---------------- Photos & Media (Milestone 9) ----------------
+
+router.post('/:familyId/media', blockIfArchived, requireFamilyRole('member'), handleMediaUpload, uploadMediaValidator, validate, mediaController.uploadMedia);
+router.get('/:familyId/media/:mediaId', mediaController.getMedia);
+router.patch('/:familyId/media/:mediaId', updateMediaValidator, validate, mediaController.updateMedia);
+router.delete('/:familyId/media/:mediaId', mediaController.deleteMedia);
+
+// 9.3 - person gallery
+router.get('/:familyId/people/:personId/media', mediaController.listForPerson);
+
+// 9.4 - memory gallery
+router.get('/:familyId/memories/:memoryId/media', mediaController.listForMemory);
 
 module.exports = router;
