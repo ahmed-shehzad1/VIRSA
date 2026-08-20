@@ -17,7 +17,7 @@ const profileController = require('../controllers/profile.controller');
 const { handleMediaUpload } = require('../middleware/mediaUpload.middleware');
 const { visibilityValidator } = require('../validators/profile.validator');
 const memoryFeedController = require('../controllers/memoryFeed.controller');
-const { createMemoryValidator, updateMemoryValidator, flagMemoryValidator, resolveFlagValidator } = require('../validators/memory.validator');
+const { createMemoryValidator, updateMemoryValidator, flagMemoryValidator, resolveFlagValidator: resolveMemoryFlagValidator } = require('../validators/memory.validator');
 const storyController = require('../controllers/story.controller');
 const { saveBiographyValidator, flagValidator, resolveFlagValidator } = require('../validators/story.validator');
 const mediaController = require('../controllers/media.controller');
@@ -172,7 +172,7 @@ router.get('/:familyId/memories/:memoryId', memoryFeedController.getMemory);
 
 router.post('/:familyId/memories/:memoryId/flag', requireFamilyRole('member'), flagMemoryValidator, validate, memoryFeedController.flagMemory);
 router.get('/:familyId/memory-flags', requireFamilyRole('admin'), memoryFeedController.listPendingFlags);
-router.patch('/:familyId/memory-flags/:flagId/resolve', requireFamilyRole('admin'), resolveFlagValidator, validate, memoryFeedController.resolveFlag);
+router.patch('/:familyId/memory-flags/:flagId/resolve', requireFamilyRole('admin'), resolveMemoryFlagValidator, validate, memoryFeedController.resolveFlag);
 
 // ---------------- Photos & Media (Milestone 9) ----------------
 
