@@ -23,7 +23,7 @@ api.interceptors.request.use((config) => {
 export async function createFamily(
   name: string,
   description: string,
-  isPrivate = true,
+  isPrivate: boolean,
 ) {
   const response = await api.post("/api/families", {
     name,
