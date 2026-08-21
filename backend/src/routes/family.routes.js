@@ -26,6 +26,8 @@ const timelineEventController = require('../controllers/timelineEvent.controller
 const { createEventValidator, updateEventValidator } = require('../validators/timelineEvent.validator');
 const changeRequestController = require('../controllers/changeRequest.controller');
 const { submitChangeRequestValidator, reviewChangeRequestValidator } = require('../validators/changeRequest.validator');
+const moderationController = require('../controllers/moderation.controller');
+const { reportContentValidator, resolveReportValidator } = require('../validators/moderation.validator');
 
 router.use(requireAuth);
 
@@ -208,5 +210,15 @@ router.get('/:familyId/change-requests/history', requireFamilyRole('admin'), cha
 
 router.post('/:familyId/change-requests/:changeRequestId/approve', requireFamilyRole('admin'), reviewChangeRequestValidator, validate, changeRequestController.approveChangeRequest);
 router.post('/:familyId/change-requests/:changeRequestId/reject', requireFamilyRole('admin'), reviewChangeRequestValidator, validate, changeRequestController.rejectChangeRequest);
+
+
+// ---------------- Unified Moderation (Milestone 12) ----------------
+
+router.post('/:familyId/moderation/report', requireFamilyRole('member'), reportContentValidator, validate, moderationController.reportContent);
+router.get('/:familyId/moderation/dashboard', requireFamilyRole('admin'), moderationController.getDashboard);
+router.get('/:familyId/moderation/history', requireFamilyRole('admin'), moderationController.getHistory);
+router.patch('/:familyId/moderation/reports/:contentType/:flagId/resolve', requireFamilyRole('admin'), resolveReportValidator, validate, moderationController.resolveReport);
+router.post('/:familyId/moderation/content/:contentType/:contentId/remove', requireFamilyRole('admin'), moderationController.removeContent);
+router.post('/:familyId/moderation/content/:contentType/:contentId/restore', requireFamilyRole('admin'), moderationController.restoreContent);
 
 module.exports = router;
