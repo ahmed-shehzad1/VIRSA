@@ -24,6 +24,8 @@ const mediaController = require('../controllers/media.controller');
 const { uploadMediaValidator, updateMediaValidator } = require('../validators/media.validator');
 const timelineEventController = require('../controllers/timelineEvent.controller');
 const { createEventValidator, updateEventValidator } = require('../validators/timelineEvent.validator');
+const changeRequestController = require('../controllers/changeRequest.controller');
+const { submitChangeRequestValidator, reviewChangeRequestValidator } = require('../validators/changeRequest.validator');
 
 router.use(requireAuth);
 
@@ -195,5 +197,16 @@ router.get('/:familyId/people/:personId/timeline-events', timelineEventControlle
 router.get('/:familyId/timeline-events/:eventId', timelineEventController.getEvent);
 router.patch('/:familyId/timeline-events/:eventId', updateEventValidator, validate, timelineEventController.updateEvent);
 router.delete('/:familyId/timeline-events/:eventId', timelineEventController.deleteEvent);
+
+// ---------------- Change Requests (Milestone 11) ----------------
+
+router.post('/:familyId/people/:personId/change-requests', blockIfArchived, requireFamilyRole('member'), submitChangeRequestValidator, validate, changeRequestController.submitChangeRequest);
+router.get('/:familyId/people/:personId/change-requests', changeRequestController.listForPerson);
+
+router.get('/:familyId/change-requests/pending', requireFamilyRole('admin'), changeRequestController.listPending);
+router.get('/:familyId/change-requests/history', requireFamilyRole('admin'), changeRequestController.listFamilyHistory);
+
+router.post('/:familyId/change-requests/:changeRequestId/approve', requireFamilyRole('admin'), reviewChangeRequestValidator, validate, changeRequestController.approveChangeRequest);
+router.post('/:familyId/change-requests/:changeRequestId/reject', requireFamilyRole('admin'), reviewChangeRequestValidator, validate, changeRequestController.rejectChangeRequest);
 
 module.exports = router;
