@@ -38,4 +38,16 @@ async function resolve(id, status, resolvedBy, resolutionNote) {
   return data;
 }
 
+async function listResolvedByFamily(familyId) {
+  const { data, error } = await supabase
+    .from('person_biography_flags')
+    .select('*')
+    .eq('family_id', familyId)
+    .neq('status', 'pending')
+    .order('resolved_at', { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data;
+}
+
 module.exports = { create, findById, listPendingByFamily, resolve };
