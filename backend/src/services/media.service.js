@@ -4,6 +4,8 @@ const personModel = require('../models/person.model');
 const memoryModel = require('../models/personMemory.model');
 const { roleAtLeast } = require('../utils/roles');
 const ApiError = require('../utils/ApiError');
+const mediaFlagModel = require('../models/mediaFlag.model');
+const notificationService = require('./notification.service');
 
 async function assertOwnerBelongsToFamily(familyId, personId, memoryId) {
   if (!personId && !memoryId) throw ApiError.badRequest('A photo must be linked to a person or a memory', 'MISSING_OWNER');
@@ -94,4 +96,56 @@ async function deleteMedia(familyId, mediaId, actorId, membership) {
   await mediaModel.deleteById(mediaId);
 }
 
-module.exports = { uploadMedia, listForPerson, listForMemory, getMedia, updateMediaMetadata, deleteMedia };
+// 12.3 / 12.4
+async function flagMedia(familyId, mediaId, flaggedBy, reason) {
+  const media = await mediaModel.findById(mediaId);
+  if (!media || media.family_id !== familyId) throw ApiError.notFound('Photo not found', 'MEDIA_NOT_FOUND');
+
+  const flag = await mediaFlagModel.create({ mediaId, familyId, flaggedBy, reason });
+  await mediaModel.updateById(mediaId, { moderation_status: 'flagged' });
+  return flag;
+}
+
+async function resolveMediaFlag(familyId, flagId, resolution, resolvedBy, resolutionNote) {
+  const flag = await mediaFlagModel.findById(flagId);
+  if (!flag || flag.family_id !== familyId) throw ApiError.notFound('Flag not found', 'FLAG_NOT_FOUND');
+  if (flag.status !== 'pending') throw ApiError.badRequest('This report has already been resolved', 'FLAG_RESOLVED');
+
+  const status = resolution === 'hide' ? 'resolved_hidden' : 'resolved_dismissed';
+  const resolved = await mediaFlagModel.resolve(flagId, status, resolvedBy, resolutionNote);
+
+  const media = await mediaModel.findById(flag.media_id);
+  await mediaModel.updateById(flag.media_id, { moderation_status: resolution === 'hide' ? 'hidden' : 'visible' });
+
+  if (media?.uploader_id) {
+    await notificationService.createNotification(
+      media.uploader_id, familyId, 'moderation',
+      resolution === 'hide' ? 'Your photo was hidden' : 'Report on your photo dismissed',
+      resolution === 'hide' ? 'A photo you uploaded was hidden after a report.' : 'A report against your photo was reviewed and dismissed.',
+      { familyId, mediaId: flag.media_id }
+    ).catch((err) => console.error('[media.service] notify failed:', err.message));
+  }
+
+  return resolved;
+}
+
+async function listPendingMediaFlags(familyId) {
+  return mediaFlagModel.listPendingByFamily(familyId);
+}
+
+async function listResolvedMediaFlags(familyId) {
+  return mediaFlagModel.listResolvedByFamily(familyId);
+}
+
+// 12.7 - direct admin action, no report required
+async function hideMedia(familyId, mediaId) {
+  await getMedia(familyId, mediaId);
+  return mediaModel.updateById(mediaId, { moderation_status: 'hidden' });
+}
+
+async function restoreMedia(familyId, mediaId) {
+  await getMedia(familyId, mediaId);
+  return mediaModel.updateById(mediaId, { moderation_status: 'visible' });
+}
+
+module.exports = { uploadMedia, listForPerson, listForMemory, getMedia, updateMediaMetadata, deleteMedia, flagMedia, resolveMediaFlag, listPendingMediaFlags, listResolvedMediaFlags, hideMedia, restoreMedia };
