@@ -3,6 +3,7 @@ const flagModel = require('../models/memoryFlag.model');
 const personModel = require('../models/person.model');
 const { roleAtLeast } = require('../utils/roles');
 const ApiError = require('../utils/ApiError');
+const notificationService = require('./notification.service');
 
 async function assertPeopleInFamily(familyId, personId, taggedPersonIds = []) {
   const idsToCheck = [personId, ...taggedPersonIds].filter(Boolean);
@@ -125,9 +126,17 @@ async function resolveFlag(familyId, flagId, resolution, resolvedBy, resolutionN
   const status = resolution === 'hide' ? 'resolved_hidden' : 'resolved_dismissed';
   const resolved = await flagModel.resolve(flagId, status, resolvedBy, resolutionNote);
 
-  await memoryModel.updateById(flag.memory_id, {
-    moderation_status: resolution === 'hide' ? 'hidden' : 'visible',
-  });
+  const memory = await memoryModel.findById(flag.memory_id);
+  await memoryModel.updateById(flag.memory_id, { moderation_status: resolution === 'hide' ? 'hidden' : 'visible' });
+
+  if (memory?.author_id) {
+    await notificationService.createNotification(
+      memory.author_id, familyId, 'moderation',
+      resolution === 'hide' ? 'Your memory was hidden' : 'Report on your memory dismissed',
+      resolution === 'hide' ? 'A memory you posted was hidden after a report.' : 'A report against your memory was reviewed and dismissed.',
+      { familyId, memoryId: flag.memory_id }
+    ).catch((err) => console.error('[memory.service] notify failed:', err.message));
+  }
 
   return resolved;
 }
@@ -136,7 +145,11 @@ async function listPendingFlags(familyId) {
   return flagModel.listPendingByFamily(familyId);
 }
 
+async function listResolvedFlags(familyId) {
+  return flagModel.listResolvedByFamily(familyId);
+}
+
 module.exports = {
   createMemory, listForPerson, listForFamily, getMemory, updateMemory, deleteMemory,
-  flagMemory, resolveFlag, listPendingFlags,
+  flagMemory, resolveFlag, listPendingFlags, listResolvedFlags
 };
