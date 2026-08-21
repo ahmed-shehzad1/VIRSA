@@ -6,6 +6,7 @@ const emailService = require('./email.service');
 const { generateRawToken, hashToken } = require('../utils/token.util');
 const { roleOutranks } = require('../utils/roles');
 const ApiError = require('../utils/ApiError');
+const notificationService = require('./notification.service');
 
 async function inviteMember(familyId, family, inviterMembership, { email, role }) {
   if (role === 'owner') throw ApiError.badRequest('Cannot invite someone directly as owner', 'INVALID_ROLE');
@@ -16,6 +17,15 @@ async function inviteMember(familyId, family, inviterMembership, { email, role }
   if (inviterMembership.role !== 'owner' && !roleOutranks(inviterMembership.role, role)) {
     throw ApiError.forbidden('You cannot invite someone at or above your own rank', 'INSUFFICIENT_ROLE');
   }
+
+  if (existingUser) {
+  await notificationService.createNotification(
+    existingUser.id, familyId, 'invitation',
+    `Invitation to join ${family.name}`,
+    `You've been invited to join "${family.name}" as ${role}`,
+    { familyId, invitationId: invitation.id }
+  ).catch((err) => console.error('[invitation.service] notify failed:', err.message));
+}
 
   const existingUser = await userModel.findByEmail(email);
   if (existingUser) {
@@ -74,6 +84,14 @@ async function acceptInvitation(rawToken, currentUser) {
     familyId: invitation.family_id, userId: currentUser.id, role: invitation.role, invitedBy: invitation.invited_by,
   });
   await invitationModel.updateStatus(invitation.id, 'accepted');
+
+  await notificationService.createNotification(
+  invitation.invited_by, invitation.family_id, 'invitation',
+  'Invitation accepted',
+  `${currentUser.full_name || currentUser.email} accepted your invitation`,
+  { familyId: invitation.family_id, userId: currentUser.id }
+).catch((err) => console.error('[invitation.service] notify failed:', err.message));
+
   return invitation.family_id;
 }
 
