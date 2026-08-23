@@ -57,5 +57,22 @@ async function deleteById(id) {
   const { error } = await supabase.from('person_memories').delete().eq('id', id);
   if (error) throw error;
 }
+// 14.3 - text search over title/content
+async function searchByFamily(familyId, { q, includeAdminOnly, includeHidden, page, limit }) {
+  let query = supabase
+    .from('person_memories')
+    .select(`${SELECT_WITH_AUTHOR}, people(id, first_name, last_name)`, { count: 'exact' })
+    .eq('family_id', familyId)
+    .or(`title.ilike.%${q}%,content.ilike.%${q}%`);
 
-module.exports = { create, findById, listByPerson, listByFamily, updateById, deleteById };
+  if (!includeAdminOnly) query = query.eq('visibility', 'all_members');
+  if (!includeHidden) query = query.neq('moderation_status', 'hidden');
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
+  if (error) throw error;
+  return { memories: data, total: count };
+}
+
+module.exports = { create, findById, listByPerson, listByFamily, updateById, deleteById, searchByFamily };
