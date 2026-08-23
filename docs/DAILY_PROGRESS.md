@@ -176,7 +176,7 @@ Milestone 10 — Timeline
 - Next: connect frontend photo gallery/upload UI and the Add/Edit
   Event timeline UI to these endpoints.  
 
-###  Day 11 — Change Requests, Moderation, Notifications, Search, AI (Milestones 11–15)
+###  Day 11 — Change Requests, Moderation, Notifications, Search, AI
 
 Milestone 11 — Change Requests
 - Built a generic ChangeRequest system covering any editable Person
@@ -189,6 +189,16 @@ Milestone 11 — Change Requests
 - Full change history per person and per family, separate from the
   pending queue.
 - Admin-only approve/reject; any member can submit a suggestion.
+
+###  Day 12 — Change Requests, Moderation, Notifications, Search, AI 
+Milestone 12 — Moderation
+- Unified moderation layer over the report/flag systems already built
+  for biographies, memories, and (newly added) photos.
+- Single admin dashboard endpoint showing pending reports across all
+  three content types, plus a resolved-reports history.
+- Generic report-content endpoint (contentType + contentId) instead
+  of three separate report forms.
+- Direct admin remove/restore actions, independent of the report flow.
 
 
 ### Front End State here 
