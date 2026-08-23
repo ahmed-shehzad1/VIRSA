@@ -176,4 +176,19 @@ Milestone 10 — Timeline
 - Next: connect frontend photo gallery/upload UI and the Add/Edit
   Event timeline UI to these endpoints.  
 
+###  Day 11 — Change Requests, Moderation, Notifications, Search, AI (Milestones 11–15)
+
+Milestone 11 — Change Requests
+- Built a generic ChangeRequest system covering any editable Person
+  field (name, dates, biography, etc.) instead of one system per field.
+- Submit/approve/reject flow with reviewer tracking (who reviewed,
+  when, with an optional note).
+- Conflict detection: if the underlying value changes between
+  submission and review, approval is blocked with a clear conflict
+  error unless explicitly overridden.
+- Full change history per person and per family, separate from the
+  pending queue.
+- Admin-only approve/reject; any member can submit a suggestion.
+
+
 ### Front End State here 
