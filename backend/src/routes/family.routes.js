@@ -28,6 +28,7 @@ const changeRequestController = require('../controllers/changeRequest.controller
 const { submitChangeRequestValidator, reviewChangeRequestValidator } = require('../validators/changeRequest.validator');
 const moderationController = require('../controllers/moderation.controller');
 const { reportContentValidator, resolveReportValidator } = require('../validators/moderation.validator');
+const searchController = require('../controllers/search.controller');
 
 router.use(requireAuth);
 
@@ -220,5 +221,11 @@ router.get('/:familyId/moderation/history', requireFamilyRole('admin'), moderati
 router.patch('/:familyId/moderation/reports/:contentType/:flagId/resolve', requireFamilyRole('admin'), resolveReportValidator, validate, moderationController.resolveReport);
 router.post('/:familyId/moderation/content/:contentType/:contentId/remove', requireFamilyRole('admin'), moderationController.removeContent);
 router.post('/:familyId/moderation/content/:contentType/:contentId/restore', requireFamilyRole('admin'), moderationController.restoreContent);
+
+// ---------------- Search (Milestone 14) ----------------
+
+router.get('/:familyId/search', searchController.searchAll); // ?q=
+router.get('/:familyId/search/people', searchController.searchPeople); // ?q=&gender=&isLiving=&page=&limit=
+router.get('/:familyId/search/memories', searchController.searchMemories); // ?q=&page=&limit=
 
 module.exports = router;
