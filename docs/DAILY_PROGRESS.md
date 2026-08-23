@@ -176,7 +176,7 @@ Milestone 10 — Timeline
 - Next: connect frontend photo gallery/upload UI and the Add/Edit
   Event timeline UI to these endpoints.  
 
-###  Day 11 — Change Requests, Moderation, Notifications, Search, AI
+###  Day 11 — Change Requests
 
 Milestone 11 — Change Requests
 - Built a generic ChangeRequest system covering any editable Person
@@ -190,7 +190,7 @@ Milestone 11 — Change Requests
   pending queue.
 - Admin-only approve/reject; any member can submit a suggestion.
 
-###  Day 12 — Change Requests, Moderation, Notifications, Search, AI 
+###  Day 12 — Moderation
 Milestone 12 — Moderation
 - Unified moderation layer over the report/flag systems already built
   for biographies, memories, and (newly added) photos.
@@ -199,6 +199,46 @@ Milestone 12 — Moderation
 - Generic report-content endpoint (contentType + contentId) instead
   of three separate report forms.
 - Direct admin remove/restore actions, independent of the report flow.
+
+ ###  Day 13,14,15 — Notifications, Search, AI 
+ 
+Milestone 13 — Notifications
+- Built a notification model + service, triggered internally by other
+  modules (invitations sent/accepted/declined, change requests
+  submitted/reviewed, content flagged/resolved) - no separate manual
+  trigger needed anywhere.
+- Read/unread state with mark-one and mark-all-read endpoints, plus
+  an unread-count endpoint for a notification bell badge.
+- Per-user notification preferences (toggle in-app/email per category).
+- Scoped separately from family routes since a user's notifications
+  span multiple families.
+
+Milestone 14 — Search
+- Person search with filters (gender, living/deceased) and pagination,
+  reusing the existing People query layer.
+- Memory search across title/content, respecting the same privacy
+  rules as normal memory reads (admins_only content stays hidden from
+  non-admins in search results too).
+- Combined "global search" endpoint for a quick search-bar preview
+  across both people and memories.
+
+Milestone 15 — AI Assistance
+- Server-side AI service wrapping the Anthropic API - key never
+  leaves the backend, never appears in any response.
+- Biography generation grounded strictly in facts already on record
+  (dates, relationships, existing memories) - prompted explicitly not
+  to invent anything, keeping AI supportive rather than authoritative.
+- Memory summarization with input length/content validation before
+  calling the AI.
+- Persistent per-user daily usage quota (survives restarts), plus
+  clean error handling for AI timeouts/provider errors.
+- No separate save endpoint for AI output - accepted drafts flow
+  through the existing biography/memory save endpoints, optionally
+  tagged as AI-assisted for transparency.
+
+Backend of Milestones 1-15 is now functionally complete. Remaining
+before wrap-up: add the real Anthropic API key to enable AI features,
+and connect frontend to the full endpoint set.
 
 
 ### Front End State here 
