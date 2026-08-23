@@ -23,26 +23,22 @@ function assertCanEdit(person, membership, actorId) {
 }
 
 // 7.1
-async function saveBiography(familyId, personId, membership, actorId, content) {
+async function saveBiography(familyId, personId, membership, actorId, content, aiAssisted = false) {
   const person = await getPersonOrThrow(personId, familyId);
   assertCanEdit(person, membership, actorId);
 
-  // 7.3 - snapshot the OLD content into history before overwriting, so
-  // history always reflects "what it used to say", not the new content twice
   if (person.biography && person.biography.trim().length > 0) {
     await versionModel.create({ personId, familyId, content: person.biography, editedBy: person.biography_author_id });
   }
 
-  const updated = await personModel.updateById(personId, {
+  return personModel.updateById(personId, {
     biography: content,
     biography_author_id: person.biography_author_id || actorId,
     biography_status: 'published',
     biography_updated_at: new Date().toISOString(),
+    biography_ai_assisted: aiAssisted,
   });
-
-  return updated;
 }
-
 // 7.2
 async function getBiography(familyId, personId) {
   const person = await getPersonOrThrow(personId, familyId);

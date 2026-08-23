@@ -3,7 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
 
 const saveBiography = catchAsync(async (req, res) => {
-  const person = await storyService.saveBiography(req.family.id, req.params.personId, req.membership, req.user.id, req.body.content);
+  const person = await storyService.saveBiography(req.family.id, req.params.personId, req.membership, req.user.id, req.body.content, req.body.aiAssisted);
   new ApiResponse(200, { person }, 'Story saved').send(res);
 });
 
