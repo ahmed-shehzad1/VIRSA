@@ -29,6 +29,8 @@ const { submitChangeRequestValidator, reviewChangeRequestValidator } = require('
 const moderationController = require('../controllers/moderation.controller');
 const { reportContentValidator, resolveReportValidator } = require('../validators/moderation.validator');
 const searchController = require('../controllers/search.controller');
+const aiAssistController = require('../controllers/aiAssist.controller');
+const { checkAiQuota } = require('../middleware/aiRateLimit.middleware');
 
 router.use(requireAuth);
 
@@ -227,5 +229,11 @@ router.post('/:familyId/moderation/content/:contentType/:contentId/restore', req
 router.get('/:familyId/search', searchController.searchAll); // ?q=
 router.get('/:familyId/search/people', searchController.searchPeople); // ?q=&gender=&isLiving=&page=&limit=
 router.get('/:familyId/search/memories', searchController.searchMemories); // ?q=&page=&limit=
+
+// ---------------- AI Assistance (Milestone 15) ----------------
+
+router.post('/:familyId/people/:personId/ai/generate-biography', requireFamilyRole('member'), checkAiQuota, aiAssistController.generateBiography);
+router.post('/:familyId/memories/:memoryId/ai/summarize', requireFamilyRole('member'), checkAiQuota, aiAssistController.summarizeMemory);
+
 
 module.exports = router;
