@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { toast } from "sonner";
 import { Copy, Sparkles } from "lucide-react";
 import {
@@ -24,6 +26,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Person } from "@/data/types";
 import { FAMILY } from "@/data/mock";
+import { createPerson } from "@/services/personService";
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -37,16 +40,68 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-export function AddPersonModal({
-  people,
-  trigger,
-}: {
-  people: Person[];
-  trigger: ReactNode;
-}) {
+export function AddPersonModal({ familyId, trigger }: { familyId: string; trigger: ReactNode }) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deceased, setDeceased] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formElement = e.currentTarget;
+    const form = new FormData(formElement);
+    const fullName = String(form.get("fullName") || "").trim();
+    const nameParts = fullName.split(/\s+/).filter(Boolean);
+    const birthYear = String(form.get("birthYear") || "").trim();
+    const deathYear = String(form.get("deathYear") || "").trim();
+
+    if (!fullName || !nameParts[0]) {
+      setError("Enter the person's full name.");
+      return;
+    }
+
+    if (birthYear && !/^\d{4}$/.test(birthYear)) {
+      setError("Birth year must be four digits.");
+      return;
+    }
+
+    if (deceased && !/^\d{4}$/.test(deathYear)) {
+      setError("Enter a four-digit year of death.");
+      return;
+    }
+
+    setError(null);
+    setSaving(true);
+
+    try {
+      await createPerson(familyId, {
+        firstName: nameParts[0],
+        ...(nameParts.length > 1 && { lastName: nameParts.slice(1).join(" ") }),
+        ...(birthYear && { birthDate: `${birthYear}-01-01` }),
+        birthPlace: String(form.get("birthPlace") || "").trim() || undefined,
+        isLiving: !deceased,
+        ...(deceased && { deathDate: `${deathYear}-01-01` }),
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["people", familyId] }),
+        queryClient.invalidateQueries({ queryKey: ["tree", familyId] }),
+      ]);
+
+      formElement.reset();
+      setDeceased(false);
+      setOpen(false);
+      toast.success("Person added", {
+        description: "The new person is now part of the family archive.",
+      });
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      setError(message || "Unable to add this person. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -60,66 +115,34 @@ export function AddPersonModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="space-y-5 py-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSaving(true);
-            setTimeout(() => {
-              setSaving(false);
-              setOpen(false);
-              toast.success("Person added", {
-                description: "Attributed to you and awaiting confirmation from the family.",
-              });
-            }, 700);
-          }}
-        >
+        <form className="space-y-5 py-2" onSubmit={handleSubmit}>
           <Field label="Full name">
-            <Input required placeholder="e.g. Muhammad Ahmed Khan" />
+            <Input name="fullName" required placeholder="e.g. Muhammad Ahmed Khan" />
           </Field>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Birth year">
-              <Input inputMode="numeric" placeholder="1942" />
+              <Input name="birthYear" inputMode="numeric" placeholder="1942" />
             </Field>
             <Field label="Birth place">
-              <Input placeholder="Lahore" />
+              <Input name="birthPlace" placeholder="Lahore" />
             </Field>
           </div>
-          <Field label="Relationship to">
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a person" />
-              </SelectTrigger>
-              <SelectContent>
-                {people.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Relationship type">
-            <Select defaultValue="child">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="child">Child of</SelectItem>
-                <SelectItem value="parent">Parent of</SelectItem>
-                <SelectItem value="spouse">Spouse of</SelectItem>
-                <SelectItem value="sibling">Sibling of</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
           <label className="flex items-center gap-3 text-sm">
             <Checkbox checked={deceased} onCheckedChange={(v) => setDeceased(v === true)} />
             This person has passed away
           </label>
           {deceased && (
             <Field label="Year of death">
-              <Input inputMode="numeric" placeholder="2018" />
+              <Input name="deathYear" inputMode="numeric" placeholder="2018" />
             </Field>
+          )}
+          {error && (
+            <p
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+            >
+              {error}
+            </p>
           )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
@@ -370,7 +393,10 @@ export function AiStoryAssistant({ personName }: { personName: string }) {
         </Button>
 
         {working && (
-          <div className="space-y-2 rounded-md border border-dashed border-border p-5" aria-live="polite">
+          <div
+            className="space-y-2 rounded-md border border-dashed border-border p-5"
+            aria-live="polite"
+          >
             <div className="h-3 w-full animate-pulse rounded bg-muted" />
             <div className="h-3 w-11/12 animate-pulse rounded bg-muted" />
             <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />

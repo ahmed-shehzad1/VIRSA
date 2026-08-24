@@ -36,7 +36,7 @@ function TreePage() {
       description="Drag to pan, scroll to zoom, click a person to open their record"
       actions={
         <AddPersonModal
-          people={people.data ?? []}
+          familyId={family?.id || ""}
           trigger={
             <Button size="sm">
               <UserPlus /> <span className="hidden sm:inline">Add person</span>

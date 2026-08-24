@@ -45,11 +45,12 @@ function Dashboard() {
   const families = useQuery(queries.families);
   const family = families.data?.[0];
   const people = useQuery({ ...queries.realPeople(family?.id || ""), enabled: !!family?.id });
+  const tree = useQuery({ ...queries.tree(family?.id || ""), enabled: !!family?.id });
   const memories = useQuery(queries.memories);
   const stats = useQuery(queries.stats);
   const photos = useQuery(queries.photos);
 
-  const loading = families.isLoading || people.isLoading;
+  const loading = families.isLoading || people.isLoading || tree.isLoading;
 
   return (
     <AppShell
@@ -57,7 +58,7 @@ function Dashboard() {
       description="Private family archive"
       actions={
         <AddPersonModal
-          people={people.data ?? []}
+          familyId={family?.id || ""}
           trigger={
             <Button size="sm">
               <UserPlus /> <span className="hidden sm:inline">Add person</span>
@@ -88,7 +89,7 @@ function Dashboard() {
             </h2>
             <div className="mt-4 flex flex-wrap gap-3">
               <AddPersonModal
-                people={people.data ?? []}
+                familyId={family?.id || ""}
                 trigger={
                   <Button variant="quiet">
                     <UserPlus /> Add person
@@ -96,7 +97,7 @@ function Dashboard() {
                 }
               />
               <AddMemoryModal
-                people={people.data ?? []}
+                people={tree.data?.people ?? []}
                 trigger={
                   <Button variant="quiet">
                     <BookPlus /> Add memory
