@@ -11,13 +11,17 @@ import {
   PHOTOS,
 } from "./mock";
 import type { Family, Member, Memory, Person, Photo } from "./types";
+import { getMyFamilies } from "@/services/familyService";
+import { getPerson, listPeople } from "@/services/personService";
+import { getProfile } from "@/services/profileService";
+import { getTree } from "@/services/treeService";
 
 const LATENCY = 240;
 
 function resolve<T>(value: T, ms = LATENCY): Promise<T> {
   return new Promise((r) => setTimeout(() => r(value), ms));
 }
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+const API_URL = `${import.meta.env["VITE_API_URL"]}/api`;
 
 const http = axios.create({
   baseURL: API_URL,
@@ -60,6 +64,7 @@ export const api = {
 };
 
 export const queries = {
+  families: { queryKey: ["families"], queryFn: getMyFamilies },
   family: { queryKey: ["family"], queryFn: api.getFamily },
   people: { queryKey: ["people"], queryFn: api.getPeople },
   memories: { queryKey: ["memories"], queryFn: api.getMemories },
@@ -68,6 +73,22 @@ export const queries = {
   changeRequests: { queryKey: ["change-requests"], queryFn: api.getChangeRequests },
   stats: { queryKey: ["stats"], queryFn: api.getStats },
   person: (id: string) => ({ queryKey: ["person", id], queryFn: () => api.getPerson(id) }),
+  realPeople: (familyId: string) => ({
+    queryKey: ["people", familyId],
+    queryFn: () => listPeople(familyId),
+  }),
+  realPerson: (familyId: string, personId: string) => ({
+    queryKey: ["person", familyId, personId],
+    queryFn: () => getPerson(familyId, personId),
+  }),
+  tree: (familyId: string) => ({
+    queryKey: ["tree", familyId],
+    queryFn: () => getTree(familyId),
+  }),
+  profile: (familyId: string, personId: string) => ({
+    queryKey: ["profile", familyId, personId],
+    queryFn: () => getProfile(familyId, personId),
+  }),
 };
 
 /* ---------- derived helpers (pure, synchronous) ---------- */

@@ -14,7 +14,6 @@ import {
 } from "@/components/virsa/modals";
 import { Button } from "@/components/ui/button";
 import { queries } from "@/data/api";
-import { FAMILY } from "@/data/mock";
 
 export const Route = createFileRoute("/app/")({
   head: () => ({
@@ -43,16 +42,18 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 function Dashboard() {
   const navigate = useNavigate();
-  const people = useQuery(queries.people);
+  const families = useQuery(queries.families);
+  const family = families.data?.[0];
+  const people = useQuery({ ...queries.realPeople(family?.id || ""), enabled: !!family?.id });
   const memories = useQuery(queries.memories);
   const stats = useQuery(queries.stats);
   const photos = useQuery(queries.photos);
 
-  const loading = people.isLoading || stats.isLoading;
+  const loading = families.isLoading || people.isLoading;
 
   return (
     <AppShell
-      title={FAMILY.name}
+      title={family?.name || "Family archive"}
       description="Private family archive"
       actions={
         <AddPersonModal
@@ -71,10 +72,10 @@ function Dashboard() {
         <div className="space-y-12">
           <section>
             <p className="max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-              {FAMILY.description}
+              {family?.description || "Your family archive is ready to be built."}
             </p>
             <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <Stat label="People recorded" value={stats.data?.people ?? 0} />
+              <Stat label="People recorded" value={people.data?.length ?? 0} />
               <Stat label="Memories" value={stats.data?.memories ?? 0} />
               <Stat label="Photographs" value={stats.data?.photos ?? 0} />
               <Stat label="Generations" value={stats.data?.generations ?? 0} />
@@ -153,7 +154,10 @@ function Dashboard() {
                 <h2 id="recent-memories" className="font-display text-2xl">
                   Recent memories
                 </h2>
-                <Link to="/app/memories" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/app/memories"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   All memories
                 </Link>
               </div>
@@ -188,7 +192,10 @@ function Dashboard() {
                   <h2 id="recent-photos" className="font-display text-2xl">
                     Recent photographs
                   </h2>
-                  <Link to="/app/photos" className="text-sm text-muted-foreground hover:text-foreground">
+                  <Link
+                    to="/app/photos"
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
                     Gallery
                   </Link>
                 </div>

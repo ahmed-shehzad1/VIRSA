@@ -20,11 +20,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export async function createFamily(
-  name: string,
-  description: string,
-  isPrivate: boolean,
-) {
+export async function createFamily(name: string, description: string, isPrivate: boolean) {
   const response = await api.post("/api/families", {
     name,
     description,
@@ -37,13 +33,13 @@ export async function createFamily(
 export async function getMyFamilies() {
   const response = await api.get("/api/families");
 
-  return response.data;
+  return response.data.data.families;
 }
 
 export async function getFamily(familyId: string) {
   const response = await api.get(`/api/families/${familyId}`);
 
-  return response.data;
+  return response.data.data;
 }
 
 export default api;
