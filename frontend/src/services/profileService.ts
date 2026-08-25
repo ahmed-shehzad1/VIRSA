@@ -1,6 +1,7 @@
 import apiClient from "./apiClient";
 import { mapPerson, type BackendPerson } from "./personService";
-import type { Memory, Photo, TimelineEvent } from "@/data/types";
+import { mapMemory, type BackendMemory } from "./memoryService";
+import type { Photo, TimelineEvent } from "@/data/types";
 
 export type Profile = {
   person: {
@@ -24,7 +25,7 @@ export type Profile = {
     }>;
     siblings: Array<{ relationshipId: string; person: BackendPerson; siblingType?: string }>;
   };
-  memories: Array<Record<string, unknown>>;
+  memories: BackendMemory[];
   media: Array<Record<string, unknown>>;
   timeline: Array<{
     type: string;
@@ -34,24 +35,6 @@ export type Profile = {
     memoryId?: string;
   }>;
 };
-
-function mapMemory(value: Record<string, unknown>, personId: string): Memory {
-  return {
-    id: String(value.id),
-    familyId: String(value.family_id || ""),
-    personId,
-    title: String(value.title || "Untitled memory"),
-    body: String(value.body || ""),
-    authorName: String(
-      (value.users as { full_name?: string } | undefined)?.full_name || "A family member",
-    ),
-    authorUserId: String(value.user_id || ""),
-    occurredYear: value.memory_date ? Number(String(value.memory_date).slice(0, 4)) : undefined,
-    createdAt: String(value.created_at || ""),
-    status:
-      value.status === "flagged" ? "flagged" : value.status === "pending" ? "pending" : "approved",
-  };
-}
 
 function mapMedia(value: Record<string, unknown>, personId: string): Photo {
   return {
@@ -99,7 +82,7 @@ export async function getProfile(familyId: string, personId: string) {
 
   return {
     person,
-    memories: profile.memories.map((memory) => mapMemory(memory, personId)),
+    memories: profile.memories.map(mapMemory),
     photos: profile.media.map((media) => mapMedia(media, personId)),
     relationships: profile.relationships,
   };

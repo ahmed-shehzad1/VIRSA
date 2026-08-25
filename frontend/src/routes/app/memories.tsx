@@ -27,6 +27,8 @@ export const Route = createFileRoute("/app/memories")({
 });
 
 function MemoriesPage() {
+  const families = useQuery(queries.families);
+  const familyId = families.data?.[0]?.id || "";
   const memories = useQuery(queries.memories);
   const people = useQuery(queries.people);
   const [q, setQ] = useState("");
@@ -43,6 +45,7 @@ function MemoriesPage() {
       description="A memory is one person's recollection — never the family's official record"
       actions={
         <AddMemoryModal
+          familyId={familyId}
           people={people.data ?? []}
           trigger={
             <Button size="sm">

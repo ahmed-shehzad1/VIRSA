@@ -97,6 +97,7 @@ function Dashboard() {
                 }
               />
               <AddMemoryModal
+                familyId={family?.id || ""}
                 people={tree.data?.people ?? []}
                 trigger={
                   <Button variant="quiet">

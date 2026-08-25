@@ -27,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { Person } from "@/data/types";
 import { FAMILY } from "@/data/mock";
 import { createPerson } from "@/services/personService";
+import { createMemory } from "@/services/memoryService";
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -159,16 +160,74 @@ export function AddPersonModal({ familyId, trigger }: { familyId: string; trigge
 }
 
 export function AddMemoryModal({
+  familyId,
   people,
   trigger,
   defaultPersonId,
 }: {
+  familyId: string;
   people: Person[];
   trigger: ReactNode;
   defaultPersonId?: string;
 }) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [personId, setPersonId] = useState(defaultPersonId || "");
+  const [visibility, setVisibility] = useState<"all_members" | "admins_only">("all_members");
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formElement = e.currentTarget;
+    const form = new FormData(formElement);
+    const title = String(form.get("title") || "").trim();
+    const content = String(form.get("content") || "").trim();
+    const memoryDate = String(form.get("memoryDate") || "").trim();
+
+    if (!personId) {
+      setError("Choose the person this memory is about.");
+      return;
+    }
+    if (!title || title.length > 150) {
+      setError("Title must be between 1 and 150 characters.");
+      return;
+    }
+    if (!content || content.length > 10000) {
+      setError("The memory must be between 1 and 10,000 characters.");
+      return;
+    }
+    if (memoryDate && Number.isNaN(Date.parse(memoryDate))) {
+      setError("Enter a valid memory date.");
+      return;
+    }
+
+    setError(null);
+    setSaving(true);
+
+    try {
+      await createMemory(familyId, personId, {
+        title,
+        content,
+        ...(memoryDate && { memoryDate }),
+        visibility,
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile", familyId, personId] }),
+        queryClient.invalidateQueries({ queryKey: ["memories", familyId, personId] }),
+      ]);
+      formElement.reset();
+      setPersonId(defaultPersonId || "");
+      setVisibility("all_members");
+      setOpen(false);
+      toast.success("Memory added to the archive");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      setError(message || "Unable to add this memory. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -181,20 +240,9 @@ export function AddMemoryModal({
             name.
           </DialogDescription>
         </DialogHeader>
-        <form
-          className="space-y-5 py-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSaving(true);
-            setTimeout(() => {
-              setSaving(false);
-              setOpen(false);
-              toast.success("Memory added to the archive");
-            }, 700);
-          }}
-        >
+        <form className="space-y-5 py-2" onSubmit={handleSubmit}>
           <Field label="About">
-            <Select defaultValue={defaultPersonId}>
+            <Select value={personId} onValueChange={setPersonId}>
               <SelectTrigger>
                 <SelectValue placeholder="Choose a person" />
               </SelectTrigger>
@@ -208,14 +256,41 @@ export function AddMemoryModal({
             </Select>
           </Field>
           <Field label="Title">
-            <Input required placeholder="e.g. The 5:40 to Lahore" />
+            <Input name="title" required placeholder="e.g. The 5:40 to Lahore" />
           </Field>
-          <Field label="Year it happened">
-            <Input inputMode="numeric" placeholder="1988" />
+          <Field label="Date it happened">
+            <Input name="memoryDate" type="date" />
           </Field>
           <Field label="The memory">
-            <Textarea required rows={6} placeholder="Write it the way you remember it…" />
+            <Textarea
+              name="content"
+              required
+              rows={6}
+              placeholder="Write it the way you remember it…"
+            />
           </Field>
+          <Field label="Visibility">
+            <Select
+              value={visibility}
+              onValueChange={(value) => setVisibility(value as typeof visibility)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all_members">All family members</SelectItem>
+                <SelectItem value="admins_only">Family admins only</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          {error && (
+            <p
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+            >
+              {error}
+            </p>
+          )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               Cancel

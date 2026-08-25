@@ -15,6 +15,7 @@ import { getMyFamilies } from "@/services/familyService";
 import { getPerson, listPeople } from "@/services/personService";
 import { getProfile } from "@/services/profileService";
 import { getTree } from "@/services/treeService";
+import { listMemories } from "@/services/memoryService";
 
 const LATENCY = 240;
 
@@ -88,6 +89,10 @@ export const queries = {
   profile: (familyId: string, personId: string) => ({
     queryKey: ["profile", familyId, personId],
     queryFn: () => getProfile(familyId, personId),
+  }),
+  personMemories: (familyId: string, personId: string) => ({
+    queryKey: ["memories", familyId, personId],
+    queryFn: () => listMemories(familyId, personId),
   }),
 };
 

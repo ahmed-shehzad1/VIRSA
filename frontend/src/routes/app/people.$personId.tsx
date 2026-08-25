@@ -112,6 +112,7 @@ function PersonProfile() {
       description={lifeSpan(p)}
       actions={
         <AddMemoryModal
+          familyId={family?.id || ""}
           people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
           defaultPersonId={p.id}
           trigger={
@@ -282,6 +283,7 @@ function PersonProfile() {
               description="A memory is a personal recollection. Be the first to write one down."
               action={
                 <AddMemoryModal
+                  familyId={family?.id || ""}
                   people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
                   defaultPersonId={p.id}
                   trigger={<Button>Add the first memory</Button>}
