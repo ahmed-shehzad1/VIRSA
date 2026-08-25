@@ -25,6 +25,12 @@ export const Route = createFileRoute("/app/photos")({
 });
 
 function PhotosPage() {
+  const families = useQuery(queries.families);
+  const family = families.data?.[0];
+  const realPeople = useQuery({
+    ...queries.realPeople(family?.id || ""),
+    enabled: !!family?.id,
+  });
   const photos = useQuery(queries.photos);
   const people = useQuery(queries.people);
 
@@ -34,6 +40,8 @@ function PhotosPage() {
       description="Scans and prints, captioned and dated by the family"
       actions={
         <UploadPhotoModal
+          familyId={family?.id || ""}
+          people={realPeople.data ?? []}
           trigger={
             <Button size="sm">
               <ImagePlus /> <span className="hidden sm:inline">Upload photo</span>

@@ -106,6 +106,8 @@ function Dashboard() {
                 }
               />
               <UploadPhotoModal
+                familyId={family?.id || ""}
+                people={tree.data?.people ?? []}
                 trigger={
                   <Button variant="quiet">
                     <ImagePlus /> Upload photo

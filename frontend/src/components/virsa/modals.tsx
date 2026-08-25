@@ -28,6 +28,7 @@ import type { Person } from "@/data/types";
 import { FAMILY } from "@/data/mock";
 import { createPerson } from "@/services/personService";
 import { createMemory } from "@/services/memoryService";
+import { uploadPhoto } from "@/services/photoService";
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -305,8 +306,76 @@ export function AddMemoryModal({
   );
 }
 
-export function UploadPhotoModal({ trigger }: { trigger: ReactNode }) {
+export function UploadPhotoModal({
+  familyId,
+  people,
+  defaultPersonId,
+  trigger,
+}: {
+  familyId: string;
+  people: Person[];
+  defaultPersonId?: string;
+  trigger: ReactNode;
+}) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [personId, setPersonId] = useState(defaultPersonId || "");
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formElement = e.currentTarget;
+    const form = new FormData(formElement);
+    const caption = String(form.get("caption") || "").trim();
+    const takenDate = String(form.get("takenDate") || "").trim();
+
+    if (!personId) {
+      setError("Choose the person this photograph is about.");
+      return;
+    }
+    if (!file) {
+      setError("Choose a photograph to upload.");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      setError("Choose a JPEG, PNG, WEBP, or GIF image.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Photographs must be smaller than 10MB.");
+      return;
+    }
+    if (takenDate && Number.isNaN(Date.parse(takenDate))) {
+      setError("Enter a valid photograph date.");
+      return;
+    }
+
+    setError(null);
+    setSaving(true);
+
+    try {
+      await uploadPhoto(familyId, personId, file, caption, takenDate, "photo");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile", familyId, personId] }),
+        queryClient.invalidateQueries({ queryKey: ["media", familyId, personId] }),
+      ]);
+      formElement.reset();
+      setPersonId(defaultPersonId || "");
+      setFile(null);
+      setOpen(false);
+      toast.success("Photograph uploaded", {
+        description: "The photograph is now in the archive.",
+      });
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      setError(message || "Unable to upload this photograph. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -317,36 +386,53 @@ export function UploadPhotoModal({ trigger }: { trigger: ReactNode }) {
             Photographs are reviewed by a family admin before they join the gallery.
           </DialogDescription>
         </DialogHeader>
-        <form
-          className="space-y-5 py-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setOpen(false);
-            toast.success("Photograph uploaded", { description: "Awaiting review." });
-          }}
-        >
+        <form className="space-y-5 py-2" onSubmit={handleSubmit}>
           <div className="rounded-lg border border-dashed border-border bg-parchment/50 px-6 py-10 text-center">
-            <p className="text-sm text-muted-foreground">Drop a scan or photograph here</p>
-            <Button type="button" variant="outline" size="sm" className="mt-4">
-              Choose a file
-            </Button>
+            <p className="text-sm text-muted-foreground">
+              {file ? file.name : "Choose a scan or photograph"}
+            </p>
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="mx-auto mt-4 max-w-xs"
+            />
           </div>
-          <Field label="Caption">
-            <Input required placeholder="Ahmed and Fatima on their wedding day" />
+          <Field label="About">
+            <Select value={personId} onValueChange={setPersonId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a person" />
+              </SelectTrigger>
+              <SelectContent>
+                {people.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Year">
-              <Input inputMode="numeric" placeholder="1965" />
-            </Field>
-            <Field label="Place">
-              <Input placeholder="Lahore" />
-            </Field>
-          </div>
+          <Field label="Caption">
+            <Input name="caption" placeholder="Ahmed and Fatima on their wedding day" />
+          </Field>
+          <Field label="Date">
+            <Input name="takenDate" type="date" />
+          </Field>
+          {error && (
+            <p
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+            >
+              {error}
+            </p>
+          )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Upload</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Uploading…" : "Upload"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

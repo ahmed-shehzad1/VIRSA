@@ -1,7 +1,8 @@
 import apiClient from "./apiClient";
 import { mapPerson, type BackendPerson } from "./personService";
 import { mapMemory, type BackendMemory } from "./memoryService";
-import type { Photo, TimelineEvent } from "@/data/types";
+import { mapPhoto, type BackendMedia } from "./photoService";
+import type { TimelineEvent } from "@/data/types";
 
 export type Profile = {
   person: {
@@ -26,7 +27,7 @@ export type Profile = {
     siblings: Array<{ relationshipId: string; person: BackendPerson; siblingType?: string }>;
   };
   memories: BackendMemory[];
-  media: Array<Record<string, unknown>>;
+  media: BackendMedia[];
   timeline: Array<{
     type: string;
     date: string;
@@ -35,23 +36,6 @@ export type Profile = {
     memoryId?: string;
   }>;
 };
-
-function mapMedia(value: Record<string, unknown>, personId: string): Photo {
-  return {
-    id: String(value.id),
-    familyId: String(value.family_id || ""),
-    src: String(value.public_url || value.url || value.storage_url || ""),
-    caption: String(value.caption || "Untitled photograph"),
-    year: value.taken_date ? Number(String(value.taken_date).slice(0, 4)) : undefined,
-    place: value.place ? String(value.place) : undefined,
-    personIds: [personId],
-    uploadedBy: String(value.uploaded_by || "A family member"),
-    createdAt: String(value.created_at || ""),
-    status:
-      value.status === "flagged" ? "flagged" : value.status === "pending" ? "pending" : "approved",
-    aspect: "landscape",
-  };
-}
 
 export async function getProfile(familyId: string, personId: string) {
   const response = await apiClient.get<{ data: { profile: Profile } }>(
@@ -83,7 +67,7 @@ export async function getProfile(familyId: string, personId: string) {
   return {
     person,
     memories: profile.memories.map(mapMemory),
-    photos: profile.media.map((media) => mapMedia(media, personId)),
+    photos: profile.media.map(mapPhoto),
     relationships: profile.relationships,
   };
 }

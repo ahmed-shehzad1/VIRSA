@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BookPlus, PencilLine } from "lucide-react";
+import { BookPlus, ImagePlus, PencilLine } from "lucide-react";
 import { AppShell } from "@/components/virsa/app-shell";
 import { PersonPortrait } from "@/components/virsa/person-portrait";
 import { InMemoryBadge } from "@/components/virsa/badges";
@@ -9,7 +9,7 @@ import { MemoryCard } from "@/components/virsa/memory-card";
 import { PhotoGallery } from "@/components/virsa/photo-gallery";
 import { PersonCard } from "@/components/virsa/person-card";
 import { EmptyState, LoadingState } from "@/components/virsa/states";
-import { AddMemoryModal, AiStoryAssistant } from "@/components/virsa/modals";
+import { AddMemoryModal, AiStoryAssistant, UploadPhotoModal } from "@/components/virsa/modals";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { lifeSpan, queries } from "@/data/api";
@@ -294,6 +294,18 @@ function PersonProfile() {
         </TabsContent>
 
         <TabsContent value="photos" className="mt-8">
+          <div className="mb-6 flex justify-end">
+            <UploadPhotoModal
+              familyId={family?.id || ""}
+              people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
+              defaultPersonId={p.id}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <ImagePlus /> Upload photograph
+                </Button>
+              }
+            />
+          </div>
           {photos.length ? (
             <PhotoGallery
               photos={photos}
