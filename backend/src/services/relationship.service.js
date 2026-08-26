@@ -1,7 +1,7 @@
 const relationshipModel = require('../models/relationship.model');
 const personModel = require('../models/person.model');
 const ApiError = require('../utils/ApiError');
-
+const cache = require('../utils/cache');
 // ---- shared helpers -------------------------------------------------
 
 async function assertPersonInFamily(personId, familyId, label = 'Person') {
@@ -49,7 +49,9 @@ async function isAncestor(ancestorCandidateId, personId, maxDepth = 100) {
 // ---- 4.2 - parent/child ----------------------------------------------
 
 async function createParentChild(familyId, actorId, { parentId, childId }) {
-  if (parentId === childId) throw ApiError.badRequest('A person cannot be their own parent', 'INVALID_RELATIONSHIP');
+  if (parentId === childId) {
+    throw ApiError.badRequest('A person cannot be their own parent', 'INVALID_RELATIONSHIP');
+  }
 
   await assertPersonInFamily(parentId, familyId, 'Parent');
   await assertPersonInFamily(childId, familyId, 'Child');
@@ -63,21 +65,31 @@ async function createParentChild(familyId, actorId, { parentId, childId }) {
     );
   }
 
-  return relationshipModel.create({
-    family_id: familyId, type: 'parent', person_a_id: parentId, person_b_id: childId, created_by: actorId,
+  const relationship = await relationshipModel.create({
+    family_id: familyId,
+    type: 'parent',
+    person_a_id: parentId,
+    person_b_id: childId,
+    created_by: actorId,
   });
+
+  cache.invalidatePrefix(`tree:${familyId}:`);
+
+  return relationship;
 }
 
 // ---- 4.3 - spouse -------------------------------------------------
 
 async function createSpouse(familyId, actorId, { personAId, personBId, status, startDate, endDate }) {
-  if (personAId === personBId) throw ApiError.badRequest('A person cannot be their own spouse', 'INVALID_RELATIONSHIP');
+  if (personAId === personBId) {
+    throw ApiError.badRequest('A person cannot be their own spouse', 'INVALID_RELATIONSHIP');
+  }
 
   await assertPersonInFamily(personAId, familyId);
   await assertPersonInFamily(personBId, familyId);
   await assertNoExistingRelationship(familyId, personAId, personBId);
 
-  return relationshipModel.create({
+  const relationship = await relationshipModel.create({
     family_id: familyId,
     type: 'spouse',
     person_a_id: personAId,
@@ -87,6 +99,10 @@ async function createSpouse(familyId, actorId, { personAId, personBId, status, s
     end_date: endDate || null,
     created_by: actorId,
   });
+
+  cache.invalidatePrefix(`tree:${familyId}:`);
+
+  return relationship;
 }
 
 // ---- 4.4 - sibling --------------------------------------------------
