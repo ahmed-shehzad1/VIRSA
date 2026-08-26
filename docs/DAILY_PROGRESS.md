@@ -240,5 +240,60 @@ Backend of Milestones 1-15 is now functionally complete. Remaining
 before wrap-up: add the real Anthropic API key to enable AI features,
 and connect frontend to the full endpoint set.
 
+### Day 16 — Privacy & Access Control, Production Security, Performance
 
+Milestone 16 — Privacy & Access Control
+- Audited existing authorization: every /:familyId route already enforces
+  auth + family membership + role via loadFamilyContext/requireFamilyRole,
+  and private families have no browse/discovery path - membership or an
+  invitation token are the only ways in.
+- Added a dedicated living-person protection layer: living people's exact
+  birth date/place are shown as year-only/withheld to anyone except an
+  admin or the person's own claimed account, regardless of the family's
+  general privacy setting. Deceased people are exempt, since historical
+  accuracy matters more once the privacy risk is gone.
+- Confirmed unauthorized-access responses are consistent across every
+  module (NOT_FAMILY_MEMBER, INSUFFICIENT_ROLE, FAMILY_ARCHIVED, plus
+  per-content restriction codes), giving the frontend one pattern to
+  build unauthorized-state UI against.
+
+
+### Day 17 — Privacy & Access Control, Production Security, Performance  
+
+Milestone 17 — Production Security
+- Full audit pass across the backend: confirmed input validation exists
+  on every write endpoint, confirmed auth security (bcrypt cost 12,
+  rotating refresh tokens, account lockout, no email enumeration),
+  confirmed role checks on every mutating route, confirmed rate limiting
+  on sensitive endpoints, confirmed error responses never leak internals
+  outside development mode, confirmed RLS is enabled with no public
+  policies (deny-by-default if the service key were ever exposed).
+- Hardened security headers (CSP, HSTS in production, referrer policy)
+  and tightened CORS to a configurable allow-list instead of a single
+  origin.
+- Added gzip response compression.
+- Ran a secrets/environment audit: confirmed .env was never committed,
+  confirmed the Supabase service-role key only appears in one config
+  file and never in any API response.
+- Ran a dependency security audit (npm audit) - found and resolved
+  3 vulnerabilities (nodemailer, sharp, and an unused uuid dependency
+  that was removed entirely). Backend is now audit-clean.
+
+
+Milestone 18 — Performance
+- Audited existing performance patterns: pagination already used on
+  every list endpoint, the family tree already capped and windowed
+  (rootPersonId + depth) to avoid huge payloads, tree queries already
+  batched to avoid N+1 lookups.
+- Added composite database indexes for the most common filtered-list
+  query patterns (people, memories, media, change requests,
+  notifications, timeline events).
+- Added a lightweight in-memory cache for the family tree endpoint
+  (30s TTL, invalidated automatically on any person/relationship
+  change) to cut down repeated full-tree rebuilds.
+- Load-tested the tree endpoint locally with autocannon to confirm the
+  caching change measurably improves latency under concurrent load.
+
+Backend hardening pass across Milestones 16-18 complete. Project is
+now in a state I'd consider genuinely deployable, not just functional.
 ### Front End State here 
