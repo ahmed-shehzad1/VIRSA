@@ -8,12 +8,12 @@ const createPerson = catchAsync(async (req, res) => {
 });
 
 const listPeople = catchAsync(async (req, res) => {
-  const { people, pagination } = await personService.listPeople(req.family.id, req.query);
+  const { people, pagination } = await personService.listPeople(req.family.id, req.query, req.membership, req.user.id);
   new ApiResponse(200, { people, pagination }).send(res);
 });
 
 const getPerson = catchAsync(async (req, res) => {
-  const person = await personService.getPerson(req.params.personId, req.family.id);
+  const person = await personService.getPerson(req.params.personId, req.family.id, req.membership, req.user.id);
   new ApiResponse(200, { person }).send(res);
 });
 
