@@ -279,6 +279,8 @@ Milestone 17 — Production Security
   3 vulnerabilities (nodemailer, sharp, and an unused uuid dependency
   that was removed entirely). Backend is now audit-clean.
 
+### Day 18 — Privacy & Access Control, Production Security, Performance  
+
 
 Milestone 18 — Performance
 - Audited existing performance patterns: pagination already used on
@@ -296,4 +298,6 @@ Milestone 18 — Performance
 
 Backend hardening pass across Milestones 16-18 complete. Project is
 now in a state I'd consider genuinely deployable, not just functional.
+
+
 ### Front End State here 
