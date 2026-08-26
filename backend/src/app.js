@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 
@@ -11,17 +12,41 @@ const { notFoundHandler, errorHandler } = require('./middleware/error.middleware
 
 const app = express();
 
-// Behind a reverse proxy (Render, Railway, Vercel, etc.) so req.ip / secure
-// cookies work correctly.
 app.set('trust proxy', 1);
 
-app.use(helmet());
+// 17.5 - hardened security headers
 app.use(
-  cors({
-    origin: config.clientUrl,
-    credentials: true, // required so the refresh-token cookie is sent
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'], // allow Supabase Storage image URLs
+        connectSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // needed so avatar/media images load on the frontend origin
+    hsts: config.nodeEnv === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   })
 );
+
+// 17.6 - supports a comma-separated list of allowed origins for staging/prod
+const allowedOrigins = config.clientUrl.split(',').map((o) => o.trim());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  })
+);
+
+// 18.5 - gzip API responses
+app.use(compression());
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
