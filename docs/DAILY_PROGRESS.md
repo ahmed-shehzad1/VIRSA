@@ -299,5 +299,24 @@ Milestone 18 — Performance
 Backend hardening pass across Milestones 16-18 complete. Project is
 now in a state I'd consider genuinely deployable, not just functional.
 
+### Day 19 — SEO & Accessibility/UX Consistency (Milestones 19)
+
+Milestone 19 — SEO
+- Audited every route in the app to confirm no private family, person,
+  memory, or media data is reachable without authentication - Virsa has
+  no public browse/discovery surface, so there's nothing for a search
+  engine to accidentally index in the first place.
+- Added X-Robots-Tag: noindex to every API response as a hard backstop,
+  independent of whatever the frontend's own robots.txt does, plus a
+  robots.txt route directly on the API in case it's ever hit on its
+  own subdomain.
+- Added the one legitimate public endpoint: static app metadata (name,
+  tagline, description) for the frontend's SEO/Open Graph tags - no
+  user or family data involved.
+- Deliberately did not build a sitemap or JSON-LD structured data -
+  both only make sense for public, indexable pages, and Virsa has none
+  behind the app itself. Building either now would misrepresent content
+  that isn't meant to be crawled.
+
 
 ### Front End State here 
