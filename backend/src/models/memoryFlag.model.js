@@ -1,9 +1,9 @@
 const supabase = require('../config/database');
 
-async function create({ personId, familyId, flaggedBy, reason }) {
+async function create({ memoryId, familyId, flaggedBy, reason }) {
   const { data, error } = await supabase
-    .from('person_biography_flags')
-    .insert({ person_id: personId, family_id: familyId, flagged_by: flaggedBy, reason })
+    .from('memory_flags')
+    .insert({ memory_id: memoryId, family_id: familyId, flagged_by: flaggedBy, reason })
     .select('*')
     .single();
   if (error) throw error;
@@ -11,15 +11,15 @@ async function create({ personId, familyId, flaggedBy, reason }) {
 }
 
 async function findById(id) {
-  const { data, error } = await supabase.from('person_biography_flags').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('memory_flags').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 async function listPendingByFamily(familyId) {
   const { data, error } = await supabase
-    .from('person_biography_flags')
-    .select('*, people(id, first_name, last_name), users!person_biography_flags_flagged_by_fkey(id, full_name)')
+    .from('memory_flags')
+    .select('*, person_memories(id, title)')
     .eq('family_id', familyId)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
@@ -29,7 +29,7 @@ async function listPendingByFamily(familyId) {
 
 async function resolve(id, status, resolvedBy, resolutionNote) {
   const { data, error } = await supabase
-    .from('person_biography_flags')
+    .from('memory_flags')
     .update({ status, resolved_by: resolvedBy, resolved_at: new Date().toISOString(), resolution_note: resolutionNote || null })
     .eq('id', id)
     .select('*')
@@ -40,7 +40,7 @@ async function resolve(id, status, resolvedBy, resolutionNote) {
 
 async function listResolvedByFamily(familyId) {
   const { data, error } = await supabase
-    .from('person_biography_flags')
+    .from('memory_flags')
     .select('*')
     .eq('family_id', familyId)
     .neq('status', 'pending')

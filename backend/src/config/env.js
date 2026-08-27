@@ -53,4 +53,10 @@ module.exports = {
     pass: process.env.SMTP_PASS,
     from: process.env.SMTP_FROM || 'Virsa <no-reply@virsa.app>',
   },
+
+    ai: {
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || null,
+    model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6',
+    dailyLimitPerUser: Number(process.env.AI_DAILY_LIMIT_PER_USER || 20),
+  },
 };

@@ -15,9 +15,22 @@ const { parentChildValidator, spouseValidator, siblingValidator } = require('../
 const treeController = require('../controllers/tree.controller');
 const profileController = require('../controllers/profile.controller');
 const { handleMediaUpload } = require('../middleware/mediaUpload.middleware');
-const { visibilityValidator, addMemoryValidator, updateMemoryValidator } = require('../validators/profile.validator');
+const { visibilityValidator } = require('../validators/profile.validator');
+const memoryFeedController = require('../controllers/memoryFeed.controller');
+const { createMemoryValidator, updateMemoryValidator, flagMemoryValidator, resolveFlagValidator: resolveMemoryFlagValidator } = require('../validators/memory.validator');
 const storyController = require('../controllers/story.controller');
 const { saveBiographyValidator, flagValidator, resolveFlagValidator } = require('../validators/story.validator');
+const mediaController = require('../controllers/media.controller');
+const { uploadMediaValidator, updateMediaValidator } = require('../validators/media.validator');
+const timelineEventController = require('../controllers/timelineEvent.controller');
+const { createEventValidator, updateEventValidator } = require('../validators/timelineEvent.validator');
+const changeRequestController = require('../controllers/changeRequest.controller');
+const { submitChangeRequestValidator, reviewChangeRequestValidator } = require('../validators/changeRequest.validator');
+const moderationController = require('../controllers/moderation.controller');
+const { reportContentValidator, resolveReportValidator } = require('../validators/moderation.validator');
+const searchController = require('../controllers/search.controller');
+const aiAssistController = require('../controllers/aiAssist.controller');
+const { checkAiQuota } = require('../middleware/aiRateLimit.middleware');
 
 router.use(requireAuth);
 
@@ -130,13 +143,10 @@ router.get('/:familyId/people/:personId/dates', profileController.getDatesInfo);
 // 6.9 - only admins can change who's allowed to see a restricted profile
 router.patch('/:familyId/people/:personId/visibility', requireFamilyRole('admin'), visibilityValidator, validate, profileController.updateVisibility);
 
-// 6.5 - media
-router.post('/:familyId/people/:personId/media', blockIfArchived, requireFamilyRole('member'), handleMediaUpload, profileController.uploadMedia);
-router.get('/:familyId/people/:personId/media', profileController.listMedia);
-router.delete('/:familyId/people/:personId/media/:mediaId', requireFamilyRole('admin'), profileController.deleteMedia);
+
 
 // 6.6 - memories
-router.post('/:familyId/people/:personId/memories', blockIfArchived, requireFamilyRole('member'), addMemoryValidator, validate, profileController.addMemory);
+router.post('/:familyId/people/:personId/memories', blockIfArchived, requireFamilyRole('member'), createMemoryValidator, validate, profileController.addMemory);
 router.get('/:familyId/people/:personId/memories', profileController.listMemories);
 router.patch('/:familyId/people/:personId/memories/:memoryId', updateMemoryValidator, validate, profileController.updateMemory);
 router.delete('/:familyId/people/:personId/memories/:memoryId', profileController.deleteMemory);
@@ -160,5 +170,70 @@ router.post('/:familyId/people/:personId/story/versions/:versionId/restore', blo
 router.post('/:familyId/people/:personId/story/flag', requireFamilyRole('member'), flagValidator, validate, storyController.flagBiography);
 router.get('/:familyId/story-flags', requireFamilyRole('admin'), storyController.listPendingFlags);
 router.patch('/:familyId/story-flags/:flagId/resolve', requireFamilyRole('admin'), resolveFlagValidator, validate, storyController.resolveFlag);
+
+// ---------------- Family Memory Feed & Moderation (Milestone 8) ----------------
+
+router.post('/:familyId/memories', blockIfArchived, requireFamilyRole('member'), createMemoryValidator, validate, memoryFeedController.createFamilyMemory);
+router.get('/:familyId/memories', memoryFeedController.listFamilyMemories); // ?page=&limit=
+router.get('/:familyId/memories/:memoryId', memoryFeedController.getMemory);
+
+router.post('/:familyId/memories/:memoryId/flag', requireFamilyRole('member'), flagMemoryValidator, validate, memoryFeedController.flagMemory);
+router.get('/:familyId/memory-flags', requireFamilyRole('admin'), memoryFeedController.listPendingFlags);
+router.patch('/:familyId/memory-flags/:flagId/resolve', requireFamilyRole('admin'), resolveMemoryFlagValidator, validate, memoryFeedController.resolveFlag);
+
+// ---------------- Photos & Media (Milestone 9) ----------------
+
+router.post('/:familyId/media', blockIfArchived, requireFamilyRole('member'), handleMediaUpload, uploadMediaValidator, validate, mediaController.uploadMedia);
+router.get('/:familyId/media/:mediaId', mediaController.getMedia);
+router.patch('/:familyId/media/:mediaId', updateMediaValidator, validate, mediaController.updateMedia);
+router.delete('/:familyId/media/:mediaId', mediaController.deleteMedia);
+
+// 9.3 - person gallery
+router.get('/:familyId/people/:personId/media', mediaController.listForPerson);
+
+// 9.4 - memory gallery
+router.get('/:familyId/memories/:memoryId/media', mediaController.listForMemory);
+
+
+// ---------------- Timeline (Milestone 10) ----------------
+
+router.post('/:familyId/people/:personId/timeline-events', blockIfArchived, requireFamilyRole('member'), createEventValidator, validate, timelineEventController.createEvent);
+router.get('/:familyId/people/:personId/timeline-events', timelineEventController.listEvents); // ?order=asc|desc
+router.get('/:familyId/timeline-events/:eventId', timelineEventController.getEvent);
+router.patch('/:familyId/timeline-events/:eventId', updateEventValidator, validate, timelineEventController.updateEvent);
+router.delete('/:familyId/timeline-events/:eventId', timelineEventController.deleteEvent);
+
+// ---------------- Change Requests (Milestone 11) ----------------
+
+router.post('/:familyId/people/:personId/change-requests', blockIfArchived, requireFamilyRole('member'), submitChangeRequestValidator, validate, changeRequestController.submitChangeRequest);
+router.get('/:familyId/people/:personId/change-requests', changeRequestController.listForPerson);
+
+router.get('/:familyId/change-requests/pending', requireFamilyRole('admin'), changeRequestController.listPending);
+router.get('/:familyId/change-requests/history', requireFamilyRole('admin'), changeRequestController.listFamilyHistory);
+
+router.post('/:familyId/change-requests/:changeRequestId/approve', requireFamilyRole('admin'), reviewChangeRequestValidator, validate, changeRequestController.approveChangeRequest);
+router.post('/:familyId/change-requests/:changeRequestId/reject', requireFamilyRole('admin'), reviewChangeRequestValidator, validate, changeRequestController.rejectChangeRequest);
+
+
+// ---------------- Unified Moderation (Milestone 12) ----------------
+
+router.post('/:familyId/moderation/report', requireFamilyRole('member'), reportContentValidator, validate, moderationController.reportContent);
+router.get('/:familyId/moderation/dashboard', requireFamilyRole('admin'), moderationController.getDashboard);
+router.get('/:familyId/moderation/history', requireFamilyRole('admin'), moderationController.getHistory);
+router.patch('/:familyId/moderation/reports/:contentType/:flagId/resolve', requireFamilyRole('admin'), resolveReportValidator, validate, moderationController.resolveReport);
+router.post('/:familyId/moderation/content/:contentType/:contentId/remove', requireFamilyRole('admin'), moderationController.removeContent);
+router.post('/:familyId/moderation/content/:contentType/:contentId/restore', requireFamilyRole('admin'), moderationController.restoreContent);
+
+// ---------------- Search (Milestone 14) ----------------
+
+router.get('/:familyId/search', searchController.searchAll); // ?q=
+router.get('/:familyId/search/people', searchController.searchPeople); // ?q=&gender=&isLiving=&page=&limit=
+router.get('/:familyId/search/memories', searchController.searchMemories); // ?q=&page=&limit=
+
+// ---------------- AI Assistance (Milestone 15) ----------------
+
+router.post('/:familyId/people/:personId/ai/generate-biography', requireFamilyRole('member'), checkAiQuota, aiAssistController.generateBiography);
+router.post('/:familyId/memories/:memoryId/ai/summarize', requireFamilyRole('member'), checkAiQuota, aiAssistController.summarizeMemory);
+
 
 module.exports = router;

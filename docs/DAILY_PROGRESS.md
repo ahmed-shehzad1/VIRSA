@@ -100,6 +100,7 @@ Milestone 5 — Family Tree
 - Next: connect frontend Tree page (React Flow) and Person Profile
   page to these endpoints.
 
+<<<<<<< HEAD
 ### Front End State here 
 Day 1 — Frontend & Repository Setup
 
@@ -148,3 +149,225 @@ Day 6
 - Verified the Git branch status and resolved synchronization requirements.
 - Successfully committed and pushed the updated changes to the remote repository.
 - Confirmed that the local and remote frontend-development branches are fully synchronized.
+=======
+### Day 7 — Life Stories Module (7.1–7.5)
+
+- Built dedicated biography read/write endpoints on top of the Person
+  model's biography field (create = editing an empty story, update =
+  editing an existing one).
+- Added version history: every time a story's content changes, the
+  previous version is snapshotted before being overwritten, with a
+  restore endpoint to bring back an older version (itself tracked as
+  a new edit, so nothing is lost).
+- Editing permissions: first-ever write is open to any member
+  (claims authorship); after that, only the original author or a
+  family admin can edit.
+- Moderation: any member can flag/report a story with a reason;
+  admins review a per-family queue and resolve by hiding the story
+  or dismissing the report.
+- Next: connect frontend story editor, history view, and moderation
+  indicators to these endpoints.  
+
+
+### Day 8 — Memories Module (8.1–8.9)
+
+- Built Memory CRUD (create/retrieve/edit/delete), deliberately
+  separate from Life Stories - memories are personal, author-attributed
+  recollections, not versioned factual records, so there's no edit
+  history here by design.
+- Author tracking on every memory, returned with each read so the
+  frontend always has attribution without extra calls.
+- Two-tier privacy (all_members / admins_only) enforced on every
+  read path, for both person-scoped and family-wide views.
+- Person-memory association: a memory can name one primary person
+  plus a tagged-people list, so it surfaces on multiple people's
+  pages.
+- Family-memory association: added a family-wide paginated memory
+  feed, separate from the per-person view.
+- Moderation: members can flag a memory with a reason; admins get a
+  review queue per family and resolve by hiding it or dismissing
+  the report.
+- Next: connect frontend Add/Edit Memory, memory feed, and
+  moderation indicators to these endpoints.
+
+### Day 9 — Photos & Media + Timeline (Milestones 9)
+
+Milestone 9 — Photos & Media
+- Extended person_media to support photos linked to either a Person or
+  a Memory, satisfying both association requirements from one table.
+- Real thumbnail generation on upload (via sharp) — a resized, compressed
+  copy is generated and stored alongside the original, so galleries can
+  load fast previews instead of full-resolution images.
+- Upload validation: file type restricted to jpeg/png/webp/gif/pdf,
+  10MB size limit, enforced before any storage write happens.
+- Metadata (caption, taken date) editable after upload, separate from
+  the delete permission.
+- Authorization: only the uploader or a family admin can edit/delete
+  a photo; all reads still gated by family membership.
+- Media storage stays in Supabase Storage (not the database), same
+  pattern as avatars from Milestone 1 - dedicated file storage, not
+  Postgres blobs.
+
+### Day 10 — Photos & Media + Timeline (Milestones 10)  
+
+Milestone 10 — Timeline
+- Built a dedicated timeline_events table for manually-created life
+  events (education, career, relocation, achievement, etc.), separate
+  from Milestone 6's auto-assembled timeline (birth/death/marriage/
+  memories).
+- Full event CRUD with category tagging and date-range support
+  (single date or a date + end date, e.g. "lived in Lahore
+  2015-2019").
+- Date validation prevents an end date before the start date.
+- Events always sorted chronologically on retrieval, with an
+  ascending/descending toggle.
+- Authorization: only the event's creator or a family admin can
+  edit/delete it; any member can add one.
+- Next: connect frontend photo gallery/upload UI and the Add/Edit
+  Event timeline UI to these endpoints.  
+
+###  Day 11 — Change Requests
+
+Milestone 11 — Change Requests
+- Built a generic ChangeRequest system covering any editable Person
+  field (name, dates, biography, etc.) instead of one system per field.
+- Submit/approve/reject flow with reviewer tracking (who reviewed,
+  when, with an optional note).
+- Conflict detection: if the underlying value changes between
+  submission and review, approval is blocked with a clear conflict
+  error unless explicitly overridden.
+- Full change history per person and per family, separate from the
+  pending queue.
+- Admin-only approve/reject; any member can submit a suggestion.
+
+###  Day 12 — Moderation
+Milestone 12 — Moderation
+- Unified moderation layer over the report/flag systems already built
+  for biographies, memories, and (newly added) photos.
+- Single admin dashboard endpoint showing pending reports across all
+  three content types, plus a resolved-reports history.
+- Generic report-content endpoint (contentType + contentId) instead
+  of three separate report forms.
+- Direct admin remove/restore actions, independent of the report flow.
+
+ ###  Day 13,14,15 — Notifications, Search, AI 
+ 
+Milestone 13 — Notifications
+- Built a notification model + service, triggered internally by other
+  modules (invitations sent/accepted/declined, change requests
+  submitted/reviewed, content flagged/resolved) - no separate manual
+  trigger needed anywhere.
+- Read/unread state with mark-one and mark-all-read endpoints, plus
+  an unread-count endpoint for a notification bell badge.
+- Per-user notification preferences (toggle in-app/email per category).
+- Scoped separately from family routes since a user's notifications
+  span multiple families.
+
+Milestone 14 — Search
+- Person search with filters (gender, living/deceased) and pagination,
+  reusing the existing People query layer.
+- Memory search across title/content, respecting the same privacy
+  rules as normal memory reads (admins_only content stays hidden from
+  non-admins in search results too).
+- Combined "global search" endpoint for a quick search-bar preview
+  across both people and memories.
+
+Milestone 15 — AI Assistance
+- Server-side AI service wrapping the Anthropic API - key never
+  leaves the backend, never appears in any response.
+- Biography generation grounded strictly in facts already on record
+  (dates, relationships, existing memories) - prompted explicitly not
+  to invent anything, keeping AI supportive rather than authoritative.
+- Memory summarization with input length/content validation before
+  calling the AI.
+- Persistent per-user daily usage quota (survives restarts), plus
+  clean error handling for AI timeouts/provider errors.
+- No separate save endpoint for AI output - accepted drafts flow
+  through the existing biography/memory save endpoints, optionally
+  tagged as AI-assisted for transparency.
+
+Backend of Milestones 1-15 is now functionally complete. Remaining
+before wrap-up: add the real Anthropic API key to enable AI features,
+and connect frontend to the full endpoint set.
+
+### Day 16 — Privacy & Access Control, Production Security, Performance
+
+Milestone 16 — Privacy & Access Control
+- Audited existing authorization: every /:familyId route already enforces
+  auth + family membership + role via loadFamilyContext/requireFamilyRole,
+  and private families have no browse/discovery path - membership or an
+  invitation token are the only ways in.
+- Added a dedicated living-person protection layer: living people's exact
+  birth date/place are shown as year-only/withheld to anyone except an
+  admin or the person's own claimed account, regardless of the family's
+  general privacy setting. Deceased people are exempt, since historical
+  accuracy matters more once the privacy risk is gone.
+- Confirmed unauthorized-access responses are consistent across every
+  module (NOT_FAMILY_MEMBER, INSUFFICIENT_ROLE, FAMILY_ARCHIVED, plus
+  per-content restriction codes), giving the frontend one pattern to
+  build unauthorized-state UI against.
+
+
+### Day 17 — Privacy & Access Control, Production Security, Performance  
+
+Milestone 17 — Production Security
+- Full audit pass across the backend: confirmed input validation exists
+  on every write endpoint, confirmed auth security (bcrypt cost 12,
+  rotating refresh tokens, account lockout, no email enumeration),
+  confirmed role checks on every mutating route, confirmed rate limiting
+  on sensitive endpoints, confirmed error responses never leak internals
+  outside development mode, confirmed RLS is enabled with no public
+  policies (deny-by-default if the service key were ever exposed).
+- Hardened security headers (CSP, HSTS in production, referrer policy)
+  and tightened CORS to a configurable allow-list instead of a single
+  origin.
+- Added gzip response compression.
+- Ran a secrets/environment audit: confirmed .env was never committed,
+  confirmed the Supabase service-role key only appears in one config
+  file and never in any API response.
+- Ran a dependency security audit (npm audit) - found and resolved
+  3 vulnerabilities (nodemailer, sharp, and an unused uuid dependency
+  that was removed entirely). Backend is now audit-clean.
+
+### Day 18 — Privacy & Access Control, Production Security, Performance  
+
+
+Milestone 18 — Performance
+- Audited existing performance patterns: pagination already used on
+  every list endpoint, the family tree already capped and windowed
+  (rootPersonId + depth) to avoid huge payloads, tree queries already
+  batched to avoid N+1 lookups.
+- Added composite database indexes for the most common filtered-list
+  query patterns (people, memories, media, change requests,
+  notifications, timeline events).
+- Added a lightweight in-memory cache for the family tree endpoint
+  (30s TTL, invalidated automatically on any person/relationship
+  change) to cut down repeated full-tree rebuilds.
+- Load-tested the tree endpoint locally with autocannon to confirm the
+  caching change measurably improves latency under concurrent load.
+
+Backend hardening pass across Milestones 16-18 complete. Project is
+now in a state I'd consider genuinely deployable, not just functional.
+
+### Day 19 — SEO & Accessibility/UX Consistency (Milestones 19)
+
+Milestone 19 — SEO
+- Audited every route in the app to confirm no private family, person,
+  memory, or media data is reachable without authentication - Virsa has
+  no public browse/discovery surface, so there's nothing for a search
+  engine to accidentally index in the first place.
+- Added X-Robots-Tag: noindex to every API response as a hard backstop,
+  independent of whatever the frontend's own robots.txt does, plus a
+  robots.txt route directly on the API in case it's ever hit on its
+  own subdomain.
+- Added the one legitimate public endpoint: static app metadata (name,
+  tagline, description) for the frontend's SEO/Open Graph tags - no
+  user or family data involved.
+- Deliberately did not build a sitemap or JSON-LD structured data -
+  both only make sense for public, indexable pages, and Virsa has none
+  behind the app itself. Building either now would misrepresent content
+  that isn't meant to be crawled.
+
+
+### Front End State here 
+>>>>>>> origin/main

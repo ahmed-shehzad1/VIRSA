@@ -5,7 +5,8 @@ router.use('/auth', require('./auth.routes'));
 router.use('/users', require('./user.routes'));
 router.use('/families', require('./family.routes'));
 router.use('/invitations', require('./invitation.routes'));
-
+router.use('/notifications', require('./notification.routes'));
 router.get('/health', (req, res) => res.json({ success: true, message: 'OK', data: { uptime: process.uptime() } }));
+router.use('/public', require('./public.routes'));
 
 module.exports = router;

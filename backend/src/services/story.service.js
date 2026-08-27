@@ -3,6 +3,7 @@ const versionModel = require('../models/biographyVersion.model');
 const flagModel = require('../models/biographyFlag.model');
 const ApiError = require('../utils/ApiError');
 const { roleAtLeast } = require('../utils/roles');
+const notificationService = require('./notification.service');
 
 async function getPersonOrThrow(personId, familyId) {
   const person = await personModel.findBiographyFields(personId);
@@ -22,26 +23,22 @@ function assertCanEdit(person, membership, actorId) {
 }
 
 // 7.1
-async function saveBiography(familyId, personId, membership, actorId, content) {
+async function saveBiography(familyId, personId, membership, actorId, content, aiAssisted = false) {
   const person = await getPersonOrThrow(personId, familyId);
   assertCanEdit(person, membership, actorId);
 
-  // 7.3 - snapshot the OLD content into history before overwriting, so
-  // history always reflects "what it used to say", not the new content twice
   if (person.biography && person.biography.trim().length > 0) {
     await versionModel.create({ personId, familyId, content: person.biography, editedBy: person.biography_author_id });
   }
 
-  const updated = await personModel.updateById(personId, {
+  return personModel.updateById(personId, {
     biography: content,
     biography_author_id: person.biography_author_id || actorId,
     biography_status: 'published',
     biography_updated_at: new Date().toISOString(),
+    biography_ai_assisted: aiAssisted,
   });
-
-  return updated;
 }
-
 // 7.2
 async function getBiography(familyId, personId) {
   const person = await getPersonOrThrow(personId, familyId);
@@ -87,9 +84,17 @@ async function resolveFlag(familyId, flagId, resolution, resolvedBy, resolutionN
   const status = resolution === 'hide' ? 'resolved_hidden' : 'resolved_dismissed';
   const resolved = await flagModel.resolve(flagId, status, resolvedBy, resolutionNote);
 
-  await personModel.updateById(flag.person_id, {
-    biography_status: resolution === 'hide' ? 'hidden' : 'published',
-  });
+  const person = await personModel.findBiographyFields(flag.person_id);
+  await personModel.updateById(flag.person_id, { biography_status: resolution === 'hide' ? 'hidden' : 'published' });
+
+  if (person?.biography_author_id) {
+    await notificationService.createNotification(
+      person.biography_author_id, familyId, 'moderation',
+      resolution === 'hide' ? 'A story was hidden' : 'Report dismissed',
+      resolution === 'hide' ? 'A biography you wrote was hidden after a report.' : 'A report against a biography you wrote was dismissed.',
+      { familyId, personId: flag.person_id }
+    ).catch((err) => console.error('[story.service] notify failed:', err.message));
+  }
 
   return resolved;
 }
@@ -98,4 +103,8 @@ async function listPendingFlags(familyId) {
   return flagModel.listPendingByFamily(familyId);
 }
 
-module.exports = { saveBiography, getBiography, getHistory, restoreVersion, flagBiography, resolveFlag, listPendingFlags };
+async function listResolvedFlags(familyId) {
+  return flagModel.listResolvedByFamily(familyId);
+}
+
+module.exports = { saveBiography, getBiography, getHistory, restoreVersion, flagBiography, resolveFlag, listPendingFlags, listResolvedFlags };

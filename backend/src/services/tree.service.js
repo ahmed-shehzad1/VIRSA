@@ -1,7 +1,7 @@
 const personModel = require('../models/person.model');
 const relationshipModel = require('../models/relationship.model');
 const ApiError = require('../utils/ApiError');
-
+const cache = require('../utils/cache');
 const DEFAULT_DEPTH = 5;
 const MAX_DEPTH = 20;
 const DEFAULT_MAX_NODES = 300;
@@ -127,39 +127,69 @@ function buildNodesAndEdges(graph, nodeIds) {
 
 // 5.1 / 5.3 / 5.8 - full tree, optionally windowed around a root person
 async function getTree(familyId, { rootPersonId, depth, maxNodes }) {
+  const cacheKey = `tree:${familyId}:${rootPersonId || 'full'}:${depth || DEFAULT_DEPTH}`;
+
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
   const graph = await buildFamilyGraph(familyId);
+
   const resolvedDepth = Math.min(depth || DEFAULT_DEPTH, MAX_DEPTH);
   const cap = Math.min(maxNodes || DEFAULT_MAX_NODES, HARD_MAX_NODES);
 
   let nodeIds;
 
   if (rootPersonId) {
-    if (!graph.peopleById.has(rootPersonId)) throw ApiError.notFound('Root person not found in this family', 'PERSON_NOT_FOUND');
+    if (!graph.peopleById.has(rootPersonId)) {
+      throw ApiError.notFound(
+        'Root person not found in this family',
+        'PERSON_NOT_FOUND'
+      );
+    }
+
     const ancestors = traverseAncestors(graph, rootPersonId, resolvedDepth);
     const descendants = traverseDescendants(graph, rootPersonId, resolvedDepth);
+
     nodeIds = new Set([...ancestors, ...descendants]);
   } else {
     if (graph.peopleById.size > cap) {
       throw ApiError.badRequest(
         `This family has ${graph.peopleById.size} people, which is too many to render at once. Pass rootPersonId and depth to view a windowed section of the tree.`,
         'TREE_TOO_LARGE',
-        { totalPeople: graph.peopleById.size, maxNodes: cap }
+        {
+          totalPeople: graph.peopleById.size,
+          maxNodes: cap,
+        }
       );
     }
+
     nodeIds = new Set(graph.peopleById.keys());
   }
 
   nodeIds = addSpouses(graph, nodeIds);
 
   const truncated = nodeIds.size > cap;
+
   if (truncated) {
     nodeIds = new Set([...nodeIds].slice(0, cap));
   }
 
   const { nodes, edges } = buildNodesAndEdges(graph, nodeIds);
-  return { nodes, edges, meta: { totalPeopleInFamily: graph.peopleById.size, includedCount: nodes.length, truncated } };
-}
 
+  const result = {
+    nodes,
+    edges,
+    meta: {
+      totalPeopleInFamily: graph.peopleById.size,
+      includedCount: nodes.length,
+      truncated,
+    },
+  };
+
+  cache.set(cacheKey, result, 30000); // 30s TTL - tree data doesn't need to be instant-fresh
+
+  return result;
+}
 // 5.4
 async function getAncestors(familyId, personId, depth) {
   const graph = await buildFamilyGraph(familyId);

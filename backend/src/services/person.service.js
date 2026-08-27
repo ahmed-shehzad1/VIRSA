@@ -1,7 +1,8 @@
 const personModel = require('../models/person.model');
 const claimModel = require('../models/personClaim.model');
 const ApiError = require('../utils/ApiError');
-
+const { sanitizePersonForViewer, sanitizePeopleList } = require('../utils/personPrivacy');
+const cache = require('../utils/cache');
 const ALLOWED_FIELDS = [
   'first_name', 'middle_name', 'last_name', 'gender',
   'birth_date', 'birth_place', 'is_living', 'death_date', 'death_place',
@@ -28,28 +29,52 @@ async function createPerson(familyId, createdByUserId, body) {
   if (!fields.first_name) throw ApiError.badRequest('First name is required', 'MISSING_FIRST_NAME');
   if (fields.death_date && fields.is_living === undefined) fields.is_living = false;
 
-  return personModel.create({ ...fields, family_id: familyId, created_by: createdByUserId });
-}
+  const person = await personModel.create({
+    ...fields,
+    family_id: familyId,
+    created_by: createdByUserId,
+  });
 
-async function getPerson(personId, familyId) {
+  cache.invalidatePrefix(`tree:${familyId}:`);
+
+  return person;
+}
+async function getPerson(personId, familyId, membership, viewerUserId) {
   const person = await personModel.findById(personId);
   if (!person || person.family_id !== familyId) throw ApiError.notFound('Person not found', 'PERSON_NOT_FOUND');
-  return person;
+  return membership ? sanitizePersonForViewer(person, membership, viewerUserId) : person;
 }
 
 // 3.3 / 3.5 / 3.6 / 3.7
 async function updatePerson(personId, familyId, body) {
-  await getPerson(personId, familyId); // ensures it belongs to this family
+  await getPerson(personId, familyId);
+
   const fields = pickAllowedFields(body);
-  if (fields.death_date && body.isLiving === undefined) fields.is_living = false;
-  if (Object.keys(fields).length === 0) return getPerson(personId, familyId);
-  return personModel.updateById(personId, fields);
+
+  if (fields.death_date && body.isLiving === undefined) {
+    fields.is_living = false;
+  }
+
+  if (Object.keys(fields).length === 0) {
+    return getPerson(personId, familyId);
+  }
+
+  const person = await personModel.updateById(personId, fields);
+
+  cache.invalidatePrefix(`tree:${familyId}:`);
+
+  return person;
 }
 
 // 3.4
 async function archivePerson(personId, familyId) {
   await getPerson(personId, familyId);
-  return personModel.archiveById(personId);
+
+  const person = await personModel.archiveById(personId);
+
+  cache.invalidatePrefix(`tree:${familyId}:`);
+
+  return person;
 }
 
 async function restorePerson(personId, familyId) {
@@ -59,19 +84,24 @@ async function restorePerson(personId, familyId) {
 
 async function deletePerson(personId, familyId) {
   await getPerson(personId, familyId);
+
   await personModel.deleteById(personId);
+
+  cache.invalidatePrefix(`tree:${familyId}:`);
 }
 
 // 3.2 / 3.8 / 3.9 / 3.10
-async function listPeople(familyId, query) {
+async function listPeople(familyId, query, membership, viewerUserId) {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 20));
 
   let claimed;
+
   if (query.claimed === 'true') claimed = true;
   if (query.claimed === 'false') claimed = false;
 
   let isLiving;
+
   if (query.isLiving === 'true') isLiving = true;
   if (query.isLiving === 'false') isLiving = false;
 
@@ -85,7 +115,15 @@ async function listPeople(familyId, query) {
     limit,
   });
 
-  return { people, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  return {
+    people: sanitizePeopleList(people, membership, viewerUserId),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
 // 3.12 - claim flow

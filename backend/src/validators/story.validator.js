@@ -2,6 +2,7 @@ const { body } = require('express-validator');
 
 const saveBiographyValidator = [
   body('content').trim().isLength({ min: 1, max: 20000 }).withMessage('Story content is required (max 20000 characters)'),
+  body('aiAssisted').optional().isBoolean(),
 ];
 
 const flagValidator = [
