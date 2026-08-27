@@ -9,6 +9,7 @@ const config = require('./config/env');
 const routes = require('./routes');
 const { generalLimiter } = require('./middleware/rateLimiters');
 const { notFoundHandler, errorHandler } = require('./middleware/error.middleware');
+const noIndex = require('./middleware/noIndex.middleware');
 
 const app = express();
 
@@ -43,6 +44,12 @@ app.use(
     credentials: true,
   })
 );
+// 19.6 - if the API is ever hit directly by a crawler (e.g. api.virsa.app),
+// this blocks it outright. The frontend's own robots.txt (served by the
+// frontend app) governs the actual user-facing site.
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send('User-agent: *\nDisallow: /\n');
+});
 
 // 18.5 - gzip API responses
 app.use(compression());
@@ -52,7 +59,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan(config.nodeEnv === 'development' ? 'dev' : 'combined'));
 app.use(generalLimiter);
-
+app.use('/api', noIndex, routes);
 app.use('/api', routes);
 
 app.use(notFoundHandler);
