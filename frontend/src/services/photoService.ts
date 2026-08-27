@@ -80,8 +80,19 @@ export async function listPhotos(
       media: BackendMedia[];
     };
   }>(
-    `/api/families/${familyId}/media`,
+    `/api/families/${familyId}/people/${personId}/media`,
   );
 
   return response.data.data.media.map(mapPhoto);
+}
+
+export async function listPhotosForFamily(
+  familyId: string,
+  personIds: string[],
+) {
+  const photos = await Promise.all(
+    personIds.map((personId) => listPhotos(familyId, personId)),
+  );
+
+  return photos.flat();
 }

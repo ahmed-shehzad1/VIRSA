@@ -16,6 +16,7 @@ import { getPerson, listPeople } from "@/services/personService";
 import { getProfile } from "@/services/profileService";
 import { getTree } from "@/services/treeService";
 import { listMemories } from "@/services/memoryService";
+import { listPhotosForFamily } from "@/services/photoService";
 
 const LATENCY = 240;
 
@@ -69,7 +70,10 @@ export const queries = {
   family: { queryKey: ["family"], queryFn: api.getFamily },
   people: { queryKey: ["people"], queryFn: api.getPeople },
   memories: { queryKey: ["memories"], queryFn: api.getMemories },
-  photos: { queryKey: ["photos"], queryFn: api.getPhotos },
+  photos: (familyId: string, personIds: string[]) => ({
+    queryKey: ["photos", familyId, personIds],
+    queryFn: () => listPhotosForFamily(familyId, personIds),
+  }),
   members: { queryKey: ["members"], queryFn: api.getMembers },
   changeRequests: { queryKey: ["change-requests"], queryFn: api.getChangeRequests },
   stats: { queryKey: ["stats"], queryFn: api.getStats },

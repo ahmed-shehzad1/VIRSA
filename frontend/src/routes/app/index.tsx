@@ -48,7 +48,13 @@ function Dashboard() {
   const tree = useQuery({ ...queries.tree(family?.id || ""), enabled: !!family?.id });
   const memories = useQuery(queries.memories);
   const stats = useQuery(queries.stats);
-  const photos = useQuery(queries.photos);
+  const photos = useQuery({
+    ...queries.photos(
+      family?.id || "",
+      people.data?.map((person) => person.id) ?? [],
+    ),
+    enabled: !!family?.id && !!people.data,
+  });
 
   const loading = families.isLoading || people.isLoading || tree.isLoading;
 

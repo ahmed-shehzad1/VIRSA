@@ -31,7 +31,13 @@ function PhotosPage() {
     ...queries.realPeople(family?.id || ""),
     enabled: !!family?.id,
   });
-  const photos = useQuery(queries.photos);
+  const photos = useQuery({
+    ...queries.photos(
+      family?.id || "",
+      realPeople.data?.map((person) => person.id) ?? [],
+    ),
+    enabled: !!family?.id && !!realPeople.data,
+  });
   const people = useQuery(queries.people);
 
   return (

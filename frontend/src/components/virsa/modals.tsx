@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
-import { Copy, Sparkles } from "lucide-react";
+import { Copy, Sparkles, Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -474,6 +474,7 @@ export function UploadPhotoModal({
   trigger: ReactNode;
 }) {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
   const [personId, setPersonId] = useState(defaultPersonId || "");
@@ -599,14 +600,6 @@ export function UploadPhotoModal({
     setSaving(true);
 
     try {
-      console.log("Uploading photograph:", {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        familyId,
-        personId,
-      });
-
       await uploadPhoto(
         familyId,
         personId,
@@ -617,6 +610,9 @@ export function UploadPhotoModal({
       );
 
       await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["photos"],
+        }),
         queryClient.invalidateQueries({
           queryKey: [
             "profile",
@@ -696,13 +692,25 @@ export function UploadPhotoModal({
                 : "Choose a scan or photograph"}
             </p>
 
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving}
+              onClick={() => fileInputRef.current?.click()}
+              className="mx-auto mt-4"
+            >
+              <Upload />
+              {file ? "Choose a different file" : "Select photograph"}
+            </Button>
+
             <Input
+              ref={fileInputRef}
               name="file"
               type="file"
               accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
               onChange={handleFileChange}
               disabled={saving}
-              className="mx-auto mt-4 max-w-xs"
+              className="hidden"
             />
 
             <p className="mt-3 text-xs text-muted-foreground">
