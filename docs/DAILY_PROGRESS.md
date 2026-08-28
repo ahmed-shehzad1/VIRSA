@@ -319,4 +319,27 @@ Milestone 19 — SEO
   that isn't meant to be crawled.
 
 
+### Day 20 — SEO & Accessibility/UX Consistency (Milestones 20)
+
+
+Milestone 20 — Accessibility & UX (backend slice)
+- Confirmed API error responses are already consistent in shape across
+  every module (success/message/code, with a details array on
+  validation errors for per-field messages) - this is what lets the
+  frontend build accessible error announcements/focus management
+  generically instead of per-module.
+- Documented every error code the API returns in one reference file,
+  grouped by category (auth, validation, authorization, not-found,
+  conflict, upload, rate-limit, AI) - gives the frontend a single
+  source of truth for building one error-handling component.
+- Unified upload error handling: avatar uploads and person/memory photo
+  uploads now share one error mapper, so file-too-large/wrong-type/
+  no-file errors look identical everywhere in the app instead of
+  varying slightly by endpoint.
+- Responsive design, keyboard navigation, screen-reader support, color
+  contrast, and mobile usability remain frontend-owned per the brief -
+  backend's role here was making sure the API gives them consistent,
+  predictable data to build accessible UI on top of.  
+
+
 ### Front End State here 
