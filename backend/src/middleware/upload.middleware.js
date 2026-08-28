@@ -19,8 +19,6 @@ const uploadAvatar = multer({
   limits: { fileSize: MAX_FILE_SIZE_BYTES, files: 1 },
 }).single('avatar');
 
-/** Wraps multer's callback style so errors flow into the normal error handler. */
-```js
 function handleAvatarUpload(req, res, next) {
   uploadAvatar(req, res, (err) => {
     if (err) return next(mapMulterError(err));
@@ -30,7 +28,6 @@ function handleAvatarUpload(req, res, next) {
     next();
   });
 }
-```
 
 
 module.exports = { handleAvatarUpload };
