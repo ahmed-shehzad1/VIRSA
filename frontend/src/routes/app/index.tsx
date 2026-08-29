@@ -49,10 +49,7 @@ function Dashboard() {
   const memories = useQuery(queries.memories);
   const stats = useQuery(queries.stats);
   const photos = useQuery({
-    ...queries.photos(
-      family?.id || "",
-      people.data?.map((person) => person.id) ?? [],
-    ),
+    ...queries.photos(family?.id || "", people.data?.map((person) => person.id) ?? []),
     enabled: !!family?.id && !!people.data,
   });
 
@@ -124,6 +121,7 @@ function Dashboard() {
                 <Network /> View family tree
               </Button>
               <InviteMemberModal
+                familyId={family?.id || ""}
                 trigger={
                   <Button variant="quiet">
                     <Send /> Invite member

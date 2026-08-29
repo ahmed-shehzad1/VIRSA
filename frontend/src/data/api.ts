@@ -17,6 +17,8 @@ import { getProfile } from "@/services/profileService";
 import { getTree } from "@/services/treeService";
 import { listMemories } from "@/services/memoryService";
 import { listPhotosForFamily } from "@/services/photoService";
+import { listMembers, listPendingInvitations } from "@/services/memberService";
+import { getFamily } from "@/services/familyService";
 
 const LATENCY = 240;
 
@@ -67,14 +69,24 @@ export const api = {
 
 export const queries = {
   families: { queryKey: ["families"], queryFn: getMyFamilies },
-  family: { queryKey: ["family"], queryFn: api.getFamily },
+  family: (familyId: string) => ({
+    queryKey: ["family", familyId],
+    queryFn: () => getFamily(familyId),
+  }),
   people: { queryKey: ["people"], queryFn: api.getPeople },
   memories: { queryKey: ["memories"], queryFn: api.getMemories },
   photos: (familyId: string, personIds: string[]) => ({
     queryKey: ["photos", familyId, personIds],
     queryFn: () => listPhotosForFamily(familyId, personIds),
   }),
-  members: { queryKey: ["members"], queryFn: api.getMembers },
+  members: (familyId: string) => ({
+    queryKey: ["members", familyId],
+    queryFn: () => listMembers(familyId),
+  }),
+  invitations: (familyId: string) => ({
+    queryKey: ["invitations", familyId],
+    queryFn: () => listPendingInvitations(familyId),
+  }),
   changeRequests: { queryKey: ["change-requests"], queryFn: api.getChangeRequests },
   stats: { queryKey: ["stats"], queryFn: api.getStats },
   person: (id: string) => ({ queryKey: ["person", id], queryFn: () => api.getPerson(id) }),
