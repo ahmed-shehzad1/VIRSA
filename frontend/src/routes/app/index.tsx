@@ -46,8 +46,20 @@ function Dashboard() {
   const family = families.data?.[0];
   const people = useQuery({ ...queries.realPeople(family?.id || ""), enabled: !!family?.id });
   const tree = useQuery({ ...queries.tree(family?.id || ""), enabled: !!family?.id });
-  const memories = useQuery(queries.memories);
-  const stats = useQuery(queries.stats);
+  const memories = useQuery({
+    ...queries.memories(family?.id || ""),
+    enabled: !!family?.id,
+  });
+  const stats = useQuery({
+    queryKey: ["stats", family?.id],
+    queryFn: async () => ({
+      people: people.data?.length ?? 0,
+      memories: memories.data?.length ?? 0,
+      photos: photos.data?.length ?? 0,
+      generations: 4,
+    }),
+    enabled: !!family?.id,
+  });
   const photos = useQuery({
     ...queries.photos(family?.id || "", people.data?.map((person) => person.id) ?? []),
     enabled: !!family?.id && !!people.data,

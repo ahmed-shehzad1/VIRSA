@@ -29,8 +29,14 @@ export const Route = createFileRoute("/app/memories")({
 function MemoriesPage() {
   const families = useQuery(queries.families);
   const familyId = families.data?.[0]?.id || "";
-  const memories = useQuery(queries.memories);
-  const people = useQuery(queries.people);
+  const memories = useQuery({
+    ...queries.memories(familyId),
+    enabled: !!familyId,
+  });
+  const people = useQuery({
+    ...queries.people(familyId),
+    enabled: !!familyId,
+  });
   const [q, setQ] = useState("");
 
   const filtered = (memories.data ?? []).filter(

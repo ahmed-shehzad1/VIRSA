@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import axios from "axios";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/virsa/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { registerUser } from "@/services/authService";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -25,6 +27,46 @@ function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const fullName = String(form.get("name") || "").trim();
+    const email = String(form.get("email") || "").trim();
+    const password = String(form.get("password") || "");
+    const confirm = String(form.get("confirm") || "");
+
+    if (!fullName) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    if (!email) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    if (password !== confirm) {
+      setError("The two passwords don't match.");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await registerUser(email, password, fullName);
+      toast.success("Account created");
+      navigate({ to: "/create-family" });
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || err.message
+        : "Unable to create the account. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <AuthLayout
@@ -57,25 +99,7 @@ function RegisterPage() {
         </div>
       }
     >
-      <form
-        className="space-y-5"
-        noValidate
-        onSubmit={(e) => {
-          e.preventDefault();
-          const f = new FormData(e.currentTarget);
-          if (f.get("password") !== f.get("confirm")) {
-            setError("The two passwords don't match.");
-            return;
-          }
-          setError(null);
-          setLoading(true);
-          setTimeout(() => {
-            setLoading(false);
-            toast.success("Account created");
-            navigate({ to: "/create-family" });
-          }, 800);
-        }}
-      >
+      <form className="space-y-5" noValidate onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="name">Full name</Label>
           <Input id="name" name="name" autoComplete="name" placeholder="Sara Khan Malik" required />
@@ -86,7 +110,13 @@ function RegisterPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="new-password" required />
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirm">Confirm password</Label>
@@ -94,7 +124,10 @@ function RegisterPage() {
         </div>
 
         {error && (
-          <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
             {error}
           </p>
         )}

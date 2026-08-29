@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import axios from "axios";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/virsa/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createFamily } from "@/services/familyService";
 
 export const Route = createFileRoute("/create-family/backup")({
   head: () => ({
@@ -29,6 +31,32 @@ function CreateFamilyPage() {
   const [ancestor, setAncestor] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (!name.trim()) {
+      setError("Please enter a family name.");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await createFamily(name.trim(), description.trim(), true);
+      toast.success("Family archive created");
+      navigate({ to: "/app" });
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || err.message
+        : "Unable to create the family archive. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <AuthLayout
@@ -37,9 +65,7 @@ function CreateFamilyPage() {
       aside={
         <div className="rounded-lg border border-border bg-card p-8 shadow-archive">
           <p className="text-[11px] uppercase tracking-[0.28em] text-gold">Preview</p>
-          <p className="mt-5 font-display text-3xl leading-tight">
-            {name || "Your family name"}
-          </p>
+          <p className="mt-5 font-display text-3xl leading-tight">{name || "Your family name"}</p>
           <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Oldest known ancestor
           </p>
@@ -58,18 +84,7 @@ function CreateFamilyPage() {
         </div>
       }
     >
-      <form
-        className="space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setLoading(true);
-          setTimeout(() => {
-            setLoading(false);
-            toast.success("Family archive created");
-            navigate({ to: "/app" });
-          }, 800);
-        }}
-      >
+      <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="fname">Family display name</Label>
           <Input
@@ -102,6 +117,14 @@ function CreateFamilyPage() {
             placeholder="Who this family is, and where it comes from."
           />
         </div>
+        {error && (
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
+            {error}
+          </p>
+        )}
         <Button type="submit" size="lg" className="w-full" disabled={loading}>
           {loading ? "Creating archive…" : "Create family archive"}
         </Button>

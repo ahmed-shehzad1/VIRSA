@@ -1,71 +1,10 @@
-import axios from "axios";
-
-import {
-  CHANGE_REQUESTS,
-  CURRENT_USER,
-  FAMILY,
-  HISTORY,
-  MEMBERS,
-  MEMORIES,
-  PEOPLE,
-  PHOTOS,
-} from "./mock";
-import type { Family, Member, Memory, Person, Photo } from "./types";
-import { getMyFamilies } from "@/services/familyService";
+import { getMyFamilies, getFamily } from "@/services/familyService";
 import { getPerson, listPeople } from "@/services/personService";
 import { getProfile } from "@/services/profileService";
 import { getTree } from "@/services/treeService";
-import { listMemories } from "@/services/memoryService";
+import { listFamilyMemories, listMemories } from "@/services/memoryService";
 import { listPhotosForFamily } from "@/services/photoService";
 import { listMembers, listPendingInvitations } from "@/services/memberService";
-import { getFamily } from "@/services/familyService";
-
-const LATENCY = 240;
-
-function resolve<T>(value: T, ms = LATENCY): Promise<T> {
-  return new Promise((r) => setTimeout(() => r(value), ms));
-}
-const API_URL = `${import.meta.env["VITE_API_URL"]}/api`;
-
-const http = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-export async function login(email: string, password: string) {
-  const response = await http.post("/auth/login", {
-    email,
-    password,
-  });
-
-  return response.data;
-}
-export const api = {
-  getFamily: () => resolve<Family>(FAMILY),
-  getCurrentUser: () => resolve(CURRENT_USER),
-  getPeople: () => resolve<Person[]>(PEOPLE),
-  getPerson: (id: string) => resolve<Person | undefined>(PEOPLE.find((p) => p.id === id)),
-  getMemories: () => resolve<Memory[]>(MEMORIES),
-  getMemoriesFor: (personId: string) =>
-    resolve<Memory[]>(MEMORIES.filter((m) => m.personId === personId)),
-  getPhotos: () => resolve<Photo[]>(PHOTOS),
-  getPhotosFor: (personId: string) =>
-    resolve<Photo[]>(PHOTOS.filter((p) => p.personIds.includes(personId))),
-  getMembers: () => resolve<Member[]>(MEMBERS),
-  getChangeRequests: () => resolve(CHANGE_REQUESTS),
-  getHistory: (personId?: string) =>
-    resolve(personId ? HISTORY.filter((h) => h.personId === personId) : HISTORY),
-  getStats: () =>
-    resolve({
-      people: PEOPLE.length,
-      memories: MEMORIES.length,
-      photos: PHOTOS.length,
-      generations: 4,
-    }),
-};
 
 export const queries = {
   families: { queryKey: ["families"], queryFn: getMyFamilies },
@@ -73,8 +12,14 @@ export const queries = {
     queryKey: ["family", familyId],
     queryFn: () => getFamily(familyId),
   }),
-  people: { queryKey: ["people"], queryFn: api.getPeople },
-  memories: { queryKey: ["memories"], queryFn: api.getMemories },
+  people: (familyId: string) => ({
+    queryKey: ["people", familyId],
+    queryFn: () => listPeople(familyId),
+  }),
+  memories: (familyId: string) => ({
+    queryKey: ["family-memories", familyId],
+    queryFn: () => listFamilyMemories(familyId),
+  }),
   photos: (familyId: string, personIds: string[]) => ({
     queryKey: ["photos", familyId, personIds],
     queryFn: () => listPhotosForFamily(familyId, personIds),
@@ -87,9 +32,10 @@ export const queries = {
     queryKey: ["invitations", familyId],
     queryFn: () => listPendingInvitations(familyId),
   }),
-  changeRequests: { queryKey: ["change-requests"], queryFn: api.getChangeRequests },
-  stats: { queryKey: ["stats"], queryFn: api.getStats },
-  person: (id: string) => ({ queryKey: ["person", id], queryFn: () => api.getPerson(id) }),
+  person: (familyId: string, id: string) => ({
+    queryKey: ["person", familyId, id],
+    queryFn: () => getPerson(familyId, id),
+  }),
   realPeople: (familyId: string) => ({
     queryKey: ["people", familyId],
     queryFn: () => listPeople(familyId),

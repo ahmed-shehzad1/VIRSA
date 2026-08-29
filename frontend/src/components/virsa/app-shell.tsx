@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutGrid,
   Network,
@@ -15,9 +16,10 @@ import { Logo } from "./logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PersonPortrait } from "./person-portrait";
-import { CURRENT_USER, FAMILY } from "@/data/mock";
 import { RoleBadge } from "./badges";
 import { cn } from "@/lib/utils";
+import { getCurrentUser } from "@/services/authService";
+import { getMyFamilies } from "@/services/familyService";
 
 const NAV = [
   { to: "/app", label: "Family home", icon: LayoutGrid, exact: true },
@@ -59,21 +61,28 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
+  const currentUser = useQuery({ queryKey: ["currentUser"], queryFn: getCurrentUser });
+  const families = useQuery({ queryKey: ["families"], queryFn: getMyFamilies });
+  const userName =
+    currentUser.data?.user?.full_name || currentUser.data?.user?.email || "Family member";
+  const familyName = families.data?.[0]?.name || "Family archive";
+  const userRole = families.data?.[0]?.myRole || "member";
+
   return (
     <div className="flex h-full flex-col gap-6 p-5">
       <Logo compact />
       <div className="rounded-lg border border-sidebar-border bg-card/70 p-4">
         <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Archive</p>
-        <p className="mt-1.5 font-display text-lg leading-tight">{FAMILY.name}</p>
+        <p className="mt-1.5 font-display text-lg leading-tight">{familyName}</p>
         <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-gold">Private</p>
       </div>
       <NavList onNavigate={onNavigate} />
       <div className="mt-auto space-y-3 border-t border-sidebar-border pt-4">
         <div className="flex items-center gap-3">
-          <PersonPortrait name={CURRENT_USER.name} size="sm" />
+          <PersonPortrait name={userName} size="sm" />
           <div className="min-w-0">
-            <p className="truncate text-sm">{CURRENT_USER.name}</p>
-            <RoleBadge role={CURRENT_USER.role} className="mt-1" />
+            <p className="truncate text-sm">{userName}</p>
+            <RoleBadge role={userRole} className="mt-1" />
           </div>
         </div>
         <Link
@@ -110,7 +119,12 @@ export function AppShell({
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md sm:px-8">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                aria-label="Open navigation"
+              >
                 <Menu />
               </Button>
             </SheetTrigger>

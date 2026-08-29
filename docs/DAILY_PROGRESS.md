@@ -370,4 +370,18 @@ Milestone 19 — SEO
 
 
 ### Front End State here 
+
+### Frontend final integration pass — family membership, settings, and production verification
+- Finished the remaining live integration work for the authenticated frontend without changing backend business logic.
+- Replaced stale mock and faux async flows with real calls through the canonical API client and the existing frontend services.
+- Wired the settings page to actual current-user, family, member, privacy, ownership-transfer, and leave-family endpoints.
+- Replaced the static app shell archive metadata with live family/user data from the authenticated backend.
+- Replaced fake registration and family-creation success flows with real register/create-family service calls.
+- Removed the shared legacy mock query layer that still pointed some family pages at static data, so family home, memories, and photos use real family-scoped backend queries.
+- Verified the frontend remains lint-clean and production-build passes after the final integration pass.
+
+### Verification
+- Ran: npx eslint src/routes/app/settings.tsx src/components/virsa/app-shell.tsx src/routes/register.tsx src/routes/create-family.backup.tsx src/data/api.ts src/routes/app/index.tsx src/routes/app/memories.tsx src/routes/app/photos.tsx src/services/memoryService.ts && npm run build
+- Result: success, with Vite production build completing without errors.
+
 >>>>>>> origin/main

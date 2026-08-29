@@ -52,3 +52,10 @@ export async function listMemories(familyId: string, personId: string) {
   );
   return response.data.data.memories.map(mapMemory);
 }
+
+export async function listFamilyMemories(familyId: string) {
+  const response = await apiClient.get<{ data: { memories: BackendMemory[] } }>(
+    `/api/families/${familyId}/memories`,
+  );
+  return response.data.data.memories.map(mapMemory);
+}
