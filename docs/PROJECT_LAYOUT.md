@@ -365,3 +365,46 @@ Create account → Create Family Space → Invite relatives → Add ancestors �
 23.8	Final security verification	Final accessibility verification
 23.9	Final backend sign-off	Final frontend sign-off
 23.10	VIRSA MVP COMPLETE	VIRSA MVP COMPLETE
+
+
+
+MILESTONE 21 — TESTING & RELIABILITY
+
+Goal: Make sure future changes don't silently break existing behavior.
+
+#	Backend
+21.1	Test setup (Jest + Supertest, test Supabase project or mocked client)
+21.2	Auth flow tests (register/login/refresh/lockout)
+21.3	Authorization tests (role checks, family membership, private-family enforcement)
+21.4	Relationship logic tests (cycle prevention, duplicate/conflict detection)
+21.5	Change-request conflict tests
+21.6	CI pipeline (GitHub Actions — run tests on every push)
+MILESTONE 22 — API DOCUMENTATION
+
+Goal: Give the frontend dev one reliable source of truth instead of chat history.
+
+#	Backend
+22.1	OpenAPI/Swagger spec (or a well-organized Postman collection) covering every route
+22.2	Auto-served interactive docs (/api/docs)
+22.3	Example request/response for each endpoint
+22.4	Error-code reference published alongside docs (we already have the raw list from Milestone 20)
+MILESTONE 23 — DEPLOYMENT & OPERATIONS
+
+Goal: Get this off your laptop and onto something users can actually reach.
+
+#	Backend
+23.1	Dockerfile + docker-compose for local parity
+23.2	Deploy target setup (Render/Railway/Fly.io) + production env checklist
+23.3	Deep health check (verifies Supabase connectivity, not just uptime)
+23.4	Error monitoring (Sentry or similar)
+23.5	Structured request logging with request IDs
+23.6	API versioning (/api/v1/...) before any real frontend traffic depends on current paths
+MILESTONE 24 — DATA INTEGRITY & PORTABILITY
+
+Goal: Handle the realities of collaborative family data long-term.
+
+#	Backend
+24.1	Duplicate-person merge API (combine two Person records, preserving relationships/memories/media)
+24.2	GEDCOM export (industry-standard genealogy file format)
+24.3	Full account/family data export ("download everything")
+24.4	Platform-level admin tooling (cross-family moderation, abuse handling)
