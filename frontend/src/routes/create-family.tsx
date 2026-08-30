@@ -45,21 +45,18 @@ function CreateFamilyPage() {
     setLoading(true);
 
     try {
-      await createFamily(
-        name.trim(),
-        description.trim(),
-        true,
-      );
+      await createFamily(name.trim(), description.trim(), true);
 
       toast.success("Family archive created");
 
       navigate({ to: "/app" });
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message =
-        err?.response?.data?.message ||
-        "Unable to create the family archive. Please try again.";
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
 
-      setError(message);
+      setError(message || "Unable to create the family archive. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -71,33 +68,25 @@ function CreateFamilyPage() {
       subtitle="This creates a private archive that only invited relatives can open."
       aside={
         <div className="rounded-lg border border-border bg-card p-8 shadow-archive">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-gold">
-            Preview
-          </p>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-gold">Preview</p>
 
-          <p className="mt-5 font-display text-3xl leading-tight">
-            {name || "Your family name"}
-          </p>
+          <p className="mt-5 font-display text-3xl leading-tight">{name || "Your family name"}</p>
 
           <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Oldest known ancestor
           </p>
 
-          <p className="mt-1 text-[15px]">
-            {ancestor || "Not yet recorded"}
-          </p>
+          <p className="mt-1 text-[15px]">{ancestor || "Not yet recorded"}</p>
 
           <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-            {description ||
-              "A short description of who this family is and where it comes from."}
+            {description || "A short description of who this family is and where it comes from."}
           </p>
 
           <div className="mt-7 border-t border-border pt-5">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Family names do not uniquely identify a family. This archive is
-              identified by its lineage — beginning with the oldest ancestor
-              you know of — and not by you as its creator. You will be its{" "}
-              <span className="text-foreground">owner</span>, which is an
+              Family names do not uniquely identify a family. This archive is identified by its
+              lineage — beginning with the oldest ancestor you know of — and not by you as its
+              creator. You will be its <span className="text-foreground">owner</span>, which is an
               administrative role, not a historical one.
             </p>
           </div>
@@ -128,8 +117,7 @@ function CreateFamilyPage() {
           />
 
           <p className="text-xs text-muted-foreground">
-            This anchors the family's identity. It can be corrected later by
-            the family.
+            This anchors the family's identity. It can be corrected later by the family.
           </p>
         </div>
 
@@ -154,12 +142,7 @@ function CreateFamilyPage() {
           </p>
         )}
 
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full"
-          disabled={loading}
-        >
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
           {loading ? "Creating archive…" : "Create family archive"}
         </Button>
       </form>

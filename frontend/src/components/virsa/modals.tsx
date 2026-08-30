@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Person } from "@/data/types";
-import { FAMILY } from "@/data/mock";
 import { createPerson } from "@/services/personService";
 import { createMemory } from "@/services/memoryService";
 import { uploadPhoto } from "@/services/photoService";
@@ -712,23 +711,6 @@ export function AiStoryAssistant({ personName }: { personName: string }) {
     "Born Lahore 1942. Worked railway. Married 1965. Five children. Loved cricket.",
   );
 
-  const [draft, setDraft] = useState<string | null>(null);
-
-  const [working, setWorking] = useState(false);
-
-  const generate = () => {
-    setWorking(true);
-    setDraft(null);
-
-    setTimeout(() => {
-      setDraft(
-        `${personName} was born in Lahore in 1942. He spent his working life with the railways, a career that shaped the rhythm of the household around timetables and postings. He married in 1965, and together the couple raised five children. Away from work he followed cricket closely — a devotion the family remembers as much as anything else about him.`,
-      );
-
-      setWorking(false);
-    }, 1100);
-  };
-
   return (
     <section
       aria-labelledby="ai-assist-heading"
@@ -739,12 +721,12 @@ export function AiStoryAssistant({ personName }: { personName: string }) {
 
         <div>
           <h3 id="ai-assist-heading" className="font-display text-xl">
-            Turn rough notes into a story
+            Story notes
           </h3>
 
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Assistance with writing only. Nothing is published until a family member approves it —
-            the archive does not decide what is true.
+            AI-assisted drafting is not available in the current backend contract. Keep notes here,
+            then propose a manual edit when the family is ready to write the story together.
           </p>
         </div>
       </header>
@@ -755,48 +737,19 @@ export function AiStoryAssistant({ personName }: { personName: string }) {
             rows={4}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            aria-label="Rough notes for the story assistant"
+            aria-label="Rough notes for the family story"
           />
         </Field>
 
-        <Button onClick={generate} disabled={working} variant="gold">
-          {working ? "Drafting…" : "Draft a life story"}
+        <Button variant="gold" disabled>
+          Drafting unavailable
         </Button>
 
-        {working && (
-          <div
-            className="space-y-2 rounded-md border border-dashed border-border p-5"
-            aria-live="polite"
-          >
-            <div className="h-3 w-full animate-pulse rounded bg-muted" />
-            <div className="h-3 w-11/12 animate-pulse rounded bg-muted" />
-            <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
-          </div>
-        )}
-
-        {draft && (
-          <div className="fade-up rounded-md border border-gold/50 bg-gold/8 p-5">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-gold-foreground">
-              Draft — awaiting human approval
-            </p>
-
-            <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">{draft}</p>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => toast.success("Draft accepted into the life story")}>
-                Accept draft
-              </Button>
-
-              <Button size="sm" variant="outline" onClick={() => toast("Opened for editing")}>
-                Edit
-              </Button>
-
-              <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
-                Reject
-              </Button>
-            </div>
-          </div>
-        )}
+        <div className="rounded-md border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+          This archive does not currently support AI-generated story drafts. {personName} remains a
+          person in the family record, and any life story must be written and reviewed by the family
+          itself.
+        </div>
       </div>
     </section>
   );

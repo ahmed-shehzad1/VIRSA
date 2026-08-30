@@ -1,15 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  ArrowRight,
-  Lock,
-  GitBranch,
-  BookOpen,
-  Images,
-  Scale,
-  Menu,
-  X,
-} from "lucide-react";
+import { ArrowRight, Lock, GitBranch, BookOpen, Images, Scale, Menu, X } from "lucide-react";
 import heroImage from "@/assets/hero-archive.jpg";
 import { Logo } from "@/components/virsa/logo";
 import { SectionHeading } from "@/components/virsa/section-heading";
@@ -220,7 +211,10 @@ function Landing() {
                 body: "A memory is a personal recollection, always carrying the name of the person who contributed it.",
               },
             ].map((f) => (
-              <article key={f.title} className="group bg-card p-8 transition-colors hover:bg-accent/40">
+              <article
+                key={f.title}
+                className="group bg-card p-8 transition-colors hover:bg-accent/40"
+              >
                 <f.icon className="size-5 text-gold" aria-hidden />
                 <h3 className="mt-5 font-display text-xl">{f.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
@@ -236,10 +230,26 @@ function Landing() {
           <SectionHeading eyebrow="How it works" title="Four quiet steps" />
           <ol className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { n: "01", t: "Create the family", d: "Name the family and record the oldest ancestor you know of. The family is defined by its lineage, not by whoever signed up." },
-              { n: "02", t: "Invite relatives", d: "Send an invitation code. Only invited people can see anything at all." },
-              { n: "03", t: "Add people and stories", d: "Build the tree together. Everyone contributes; every contribution is attributed." },
-              { n: "04", t: "Pass it on", d: "The archive belongs to the family. It survives members leaving, and ownership can be transferred." },
+              {
+                n: "01",
+                t: "Create the family",
+                d: "Name the family and record the oldest ancestor you know of. The family is defined by its lineage, not by whoever signed up.",
+              },
+              {
+                n: "02",
+                t: "Invite relatives",
+                d: "Send an invitation code. Only invited people can see anything at all.",
+              },
+              {
+                n: "03",
+                t: "Add people and stories",
+                d: "Build the tree together. Everyone contributes; every contribution is attributed.",
+              },
+              {
+                n: "04",
+                t: "Pass it on",
+                d: "The archive belongs to the family. It survives members leaving, and ownership can be transferred.",
+              },
             ].map((s) => (
               <li key={s.n}>
                 <p className="font-display text-3xl text-gold">{s.n}</p>
@@ -281,7 +291,10 @@ function Landing() {
       </section>
 
       {/* ---------- Privacy ---------- */}
-      <section id="privacy" className="scroll-mt-24 border-y border-border bg-primary py-24 text-primary-foreground">
+      <section
+        id="privacy"
+        className="scroll-mt-24 border-y border-border bg-primary py-24 text-primary-foreground"
+      >
         <div className="mx-auto max-w-3xl px-6 text-center">
           <p className="text-[11px] uppercase tracking-[0.3em] text-primary-foreground/70">
             Privacy

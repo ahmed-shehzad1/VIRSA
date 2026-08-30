@@ -1,5 +1,19 @@
 ### Backend State here 
 
+### Frontend audit and polish pass — 2026-08-30
+- Audited the live frontend app for real data gaps, fake success flows, non-working buttons, stale mock usage, and duplicate API patterns.
+- Removed duplicate Axios client setup and aligned the auth/family services to the shared client in [frontend/src/services/apiClient.ts](../frontend/src/services/apiClient.ts).
+- Kept the real family creation, registration, join-family, member management, and settings flows tied to the existing backend contracts.
+- Replaced the remaining fake AI story-generation flow with an explicit unavailable state instead of a fake success path.
+- Preserved the existing VIRSA design while tightening validation, loading, error handling, empty states, and disabled states in the active UI.
+- Confirmed the app remains build-safe after the final frontend audit pass.
+
+Remaining backend-dependent functionality:
+- No family-wide memories endpoint is currently exposed by the backend.
+- No family-wide photos/media endpoint is currently exposed by the backend.
+- The linked person association in user profile settings remains backend-dependent.
+- AI-assisted life-story drafting is not part of the current backend contract.
+
 ### Day 1 — Backend Auth & User Module (1.1–1.14)
 - Implemented full custom auth: registration, login, JWT access + rotating
   refresh tokens (httpOnly cookie), logout/logout-all, auth middleware.
