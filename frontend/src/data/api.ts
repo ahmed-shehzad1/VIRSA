@@ -1,61 +1,61 @@
-/**
- * Data access layer.
- *
- * Every screen reads through this module. Swapping the mock arrays for real
- * HTTP / server-function calls later requires no component changes — the
- * signatures already return promises.
- */
-import {
-  CHANGE_REQUESTS,
-  CURRENT_USER,
-  FAMILY,
-  HISTORY,
-  MEMBERS,
-  MEMORIES,
-  PEOPLE,
-  PHOTOS,
-} from "./mock";
-import type { Family, Member, Memory, Person, Photo } from "./types";
-
-const LATENCY = 240;
-
-function resolve<T>(value: T, ms = LATENCY): Promise<T> {
-  return new Promise((r) => setTimeout(() => r(value), ms));
-}
-
-export const api = {
-  getFamily: () => resolve<Family>(FAMILY),
-  getCurrentUser: () => resolve(CURRENT_USER),
-  getPeople: () => resolve<Person[]>(PEOPLE),
-  getPerson: (id: string) => resolve<Person | undefined>(PEOPLE.find((p) => p.id === id)),
-  getMemories: () => resolve<Memory[]>(MEMORIES),
-  getMemoriesFor: (personId: string) =>
-    resolve<Memory[]>(MEMORIES.filter((m) => m.personId === personId)),
-  getPhotos: () => resolve<Photo[]>(PHOTOS),
-  getPhotosFor: (personId: string) =>
-    resolve<Photo[]>(PHOTOS.filter((p) => p.personIds.includes(personId))),
-  getMembers: () => resolve<Member[]>(MEMBERS),
-  getChangeRequests: () => resolve(CHANGE_REQUESTS),
-  getHistory: (personId?: string) =>
-    resolve(personId ? HISTORY.filter((h) => h.personId === personId) : HISTORY),
-  getStats: () =>
-    resolve({
-      people: PEOPLE.length,
-      memories: MEMORIES.length,
-      photos: PHOTOS.length,
-      generations: 4,
-    }),
-};
+import { getMyFamilies, getFamily } from "@/services/familyService";
+import { getPerson, listPeople } from "@/services/personService";
+import { getProfile } from "@/services/profileService";
+import { getTree } from "@/services/treeService";
+import { listFamilyMemories, listMemories } from "@/services/memoryService";
+import { listPhotosForFamily } from "@/services/photoService";
+import { listMembers, listPendingInvitations } from "@/services/memberService";
 
 export const queries = {
-  family: { queryKey: ["family"], queryFn: api.getFamily },
-  people: { queryKey: ["people"], queryFn: api.getPeople },
-  memories: { queryKey: ["memories"], queryFn: api.getMemories },
-  photos: { queryKey: ["photos"], queryFn: api.getPhotos },
-  members: { queryKey: ["members"], queryFn: api.getMembers },
-  changeRequests: { queryKey: ["change-requests"], queryFn: api.getChangeRequests },
-  stats: { queryKey: ["stats"], queryFn: api.getStats },
-  person: (id: string) => ({ queryKey: ["person", id], queryFn: () => api.getPerson(id) }),
+  families: { queryKey: ["families"], queryFn: getMyFamilies },
+  family: (familyId: string) => ({
+    queryKey: ["family", familyId],
+    queryFn: () => getFamily(familyId),
+  }),
+  people: (familyId: string) => ({
+    queryKey: ["people", familyId],
+    queryFn: () => listPeople(familyId),
+  }),
+  memories: (familyId: string) => ({
+    queryKey: ["family-memories", familyId],
+    queryFn: () => listFamilyMemories(familyId),
+  }),
+  photos: (familyId: string, personIds: string[]) => ({
+    queryKey: ["photos", familyId, personIds],
+    queryFn: () => listPhotosForFamily(familyId, personIds),
+  }),
+  members: (familyId: string) => ({
+    queryKey: ["members", familyId],
+    queryFn: () => listMembers(familyId),
+  }),
+  invitations: (familyId: string) => ({
+    queryKey: ["invitations", familyId],
+    queryFn: () => listPendingInvitations(familyId),
+  }),
+  person: (familyId: string, id: string) => ({
+    queryKey: ["person", familyId, id],
+    queryFn: () => getPerson(familyId, id),
+  }),
+  realPeople: (familyId: string) => ({
+    queryKey: ["people", familyId],
+    queryFn: () => listPeople(familyId),
+  }),
+  realPerson: (familyId: string, personId: string) => ({
+    queryKey: ["person", familyId, personId],
+    queryFn: () => getPerson(familyId, personId),
+  }),
+  tree: (familyId: string) => ({
+    queryKey: ["tree", familyId],
+    queryFn: () => getTree(familyId),
+  }),
+  profile: (familyId: string, personId: string) => ({
+    queryKey: ["profile", familyId, personId],
+    queryFn: () => getProfile(familyId, personId),
+  }),
+  personMemories: (familyId: string, personId: string) => ({
+    queryKey: ["memories", familyId, personId],
+    queryFn: () => listMemories(familyId, personId),
+  }),
 };
 
 /* ---------- derived helpers (pure, synchronous) ---------- */

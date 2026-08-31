@@ -14,7 +14,6 @@ import {
 } from "@/components/virsa/modals";
 import { Button } from "@/components/ui/button";
 import { queries } from "@/data/api";
-import { FAMILY } from "@/data/mock";
 
 export const Route = createFileRoute("/app/")({
   head: () => ({
@@ -43,20 +42,38 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 function Dashboard() {
   const navigate = useNavigate();
-  const people = useQuery(queries.people);
-  const memories = useQuery(queries.memories);
-  const stats = useQuery(queries.stats);
-  const photos = useQuery(queries.photos);
+  const families = useQuery(queries.families);
+  const family = families.data?.[0];
+  const people = useQuery({ ...queries.realPeople(family?.id || ""), enabled: !!family?.id });
+  const tree = useQuery({ ...queries.tree(family?.id || ""), enabled: !!family?.id });
+  const memories = useQuery({
+    ...queries.memories(family?.id || ""),
+    enabled: !!family?.id,
+  });
+  const stats = useQuery({
+    queryKey: ["stats", family?.id],
+    queryFn: async () => ({
+      people: people.data?.length ?? 0,
+      memories: memories.data?.length ?? 0,
+      photos: photos.data?.length ?? 0,
+      generations: 4,
+    }),
+    enabled: !!family?.id,
+  });
+  const photos = useQuery({
+    ...queries.photos(family?.id || "", people.data?.map((person) => person.id) ?? []),
+    enabled: !!family?.id && !!people.data,
+  });
 
-  const loading = people.isLoading || stats.isLoading;
+  const loading = families.isLoading || people.isLoading || tree.isLoading;
 
   return (
     <AppShell
-      title={FAMILY.name}
+      title={family?.name || "Family archive"}
       description="Private family archive"
       actions={
         <AddPersonModal
-          people={people.data ?? []}
+          familyId={family?.id || ""}
           trigger={
             <Button size="sm">
               <UserPlus /> <span className="hidden sm:inline">Add person</span>
@@ -71,10 +88,10 @@ function Dashboard() {
         <div className="space-y-12">
           <section>
             <p className="max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-              {FAMILY.description}
+              {family?.description || "Your family archive is ready to be built."}
             </p>
             <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <Stat label="People recorded" value={stats.data?.people ?? 0} />
+              <Stat label="People recorded" value={people.data?.length ?? 0} />
               <Stat label="Memories" value={stats.data?.memories ?? 0} />
               <Stat label="Photographs" value={stats.data?.photos ?? 0} />
               <Stat label="Generations" value={stats.data?.generations ?? 0} />
@@ -87,7 +104,7 @@ function Dashboard() {
             </h2>
             <div className="mt-4 flex flex-wrap gap-3">
               <AddPersonModal
-                people={people.data ?? []}
+                familyId={family?.id || ""}
                 trigger={
                   <Button variant="quiet">
                     <UserPlus /> Add person
@@ -95,7 +112,8 @@ function Dashboard() {
                 }
               />
               <AddMemoryModal
-                people={people.data ?? []}
+                familyId={family?.id || ""}
+                people={tree.data?.people ?? []}
                 trigger={
                   <Button variant="quiet">
                     <BookPlus /> Add memory
@@ -103,6 +121,8 @@ function Dashboard() {
                 }
               />
               <UploadPhotoModal
+                familyId={family?.id || ""}
+                people={tree.data?.people ?? []}
                 trigger={
                   <Button variant="quiet">
                     <ImagePlus /> Upload photo
@@ -113,6 +133,7 @@ function Dashboard() {
                 <Network /> View family tree
               </Button>
               <InviteMemberModal
+                familyId={family?.id || ""}
                 trigger={
                   <Button variant="quiet">
                     <Send /> Invite member
@@ -153,7 +174,10 @@ function Dashboard() {
                 <h2 id="recent-memories" className="font-display text-2xl">
                   Recent memories
                 </h2>
-                <Link to="/app/memories" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/app/memories"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   All memories
                 </Link>
               </div>
@@ -188,7 +212,10 @@ function Dashboard() {
                   <h2 id="recent-photos" className="font-display text-2xl">
                     Recent photographs
                   </h2>
-                  <Link to="/app/photos" className="text-sm text-muted-foreground hover:text-foreground">
+                  <Link
+                    to="/app/photos"
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
                     Gallery
                   </Link>
                 </div>

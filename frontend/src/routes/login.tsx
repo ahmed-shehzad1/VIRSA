@@ -1,3 +1,4 @@
+import { loginUser } from "@/services/authService";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -11,9 +12,15 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Sign in — VIRSA family archive" },
-      { name: "description", content: "Sign in to your private VIRSA family archive." },
+      {
+        name: "description",
+        content: "Sign in to your private VIRSA family archive.",
+      },
       { property: "og:title", content: "Sign in — VIRSA" },
-      { property: "og:description", content: "Open your private family archive." },
+      {
+        property: "og:description",
+        content: "Open your private family archive.",
+      },
     ],
   }),
   component: LoginPage,
@@ -31,17 +38,23 @@ function LoginPage() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link to="/register" className="text-primary underline-offset-4 hover:underline">
+          <Link
+            to="/register"
+            className="text-primary underline-offset-4 hover:underline"
+          >
             Register
           </Link>
         </>
       }
       aside={
         <div className="rounded-lg border border-border bg-card p-8 shadow-archive">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-gold">Private by default</p>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-gold">
+            Private by default
+          </p>
+
           <p className="mt-5 font-display text-2xl leading-relaxed">
-            “The platform does not decide what a family's history is. The family collectively
-            preserves it.”
+            “The platform does not decide what a family's history is. The
+            family collectively preserves it.”
           </p>
         </div>
       }
@@ -49,51 +62,97 @@ function LoginPage() {
       <form
         className="space-y-5"
         noValidate
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+
           const form = new FormData(e.currentTarget);
-          if (!String(form.get("email")).includes("@")) {
+          const email = String(form.get("email") || "").trim();
+          const password = String(form.get("password") || "");
+
+          if (!email.includes("@")) {
             setError("Enter a valid email address.");
             return;
           }
+
+          if (!password) {
+            setError("Enter your password.");
+            return;
+          }
+
           setError(null);
           setLoading(true);
-          setTimeout(() => {
-            setLoading(false);
+
+          try {
+            await loginUser(email, password);
+
             toast.success("Welcome back");
             navigate({ to: "/app" });
-          }, 800);
+          } catch (err: any) {
+            const message =
+              err?.response?.data?.message ||
+              "Invalid email or password.";
+
+            setError(message);
+          } finally {
+            setLoading(false);
+          }
         }}
       >
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" />
+
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+          />
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="current-password" />
+
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+          />
         </div>
 
         {error && (
-          <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
             {error}
           </p>
         )}
 
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2.5 text-sm text-muted-foreground">
-            <Checkbox id="remember" /> Remember me
+            <Checkbox id="remember" />
+            Remember me
           </label>
+
           <button
             type="button"
-            onClick={() => toast("Password reset link sent, if the account exists")}
+            onClick={() =>
+              toast("Password reset link sent, if the account exists")
+            }
             className="focus-ring rounded-sm text-sm text-primary underline-offset-4 hover:underline"
           >
             Forgot password?
           </button>
         </div>
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={loading}
+        >
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>

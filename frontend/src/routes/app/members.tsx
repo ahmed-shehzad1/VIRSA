@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { useState } from "react";
 import { Send, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
@@ -8,7 +9,7 @@ import { PersonPortrait } from "@/components/virsa/person-portrait";
 import { RoleBadge, StatusBadge } from "@/components/virsa/badges";
 import { InviteMemberModal } from "@/components/virsa/modals";
 import { ConfirmDialog } from "@/components/virsa/confirm-dialog";
-import { CardSkeletonGrid } from "@/components/virsa/states";
+import { CardSkeletonGrid, EmptyState, ErrorState } from "@/components/virsa/states";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,8 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { queries } from "@/data/api";
-import { CURRENT_USER } from "@/data/mock";
 import type { Member } from "@/data/types";
+import { removeMember, changeMemberRole } from "@/services/memberService";
 
 export const Route = createFileRoute("/app/members")({
   head: () => ({
@@ -37,9 +38,26 @@ export const Route = createFileRoute("/app/members")({
 });
 
 function MembersPage() {
-  const members = useQuery(queries.members);
+  const queryClient = useQueryClient();
+  const families = useQuery(queries.families);
+  const familyId = families.data?.[0]?.id || "";
+  const family = useQuery({ ...queries.family(familyId), enabled: !!familyId });
+  const members = useQuery({ ...queries.members(familyId), enabled: !!familyId });
   const [removing, setRemoving] = useState<Member | null>(null);
-  const canManage = CURRENT_USER.role === "owner";
+  const canManage = family.data?.myRole === "owner" || family.data?.myRole === "admin";
+
+  async function handleRemove() {
+    if (!removing) return;
+    try {
+      await removeMember(familyId, removing.userId);
+      await queryClient.invalidateQueries({ queryKey: ["members", familyId] });
+      setRemoving(null);
+      toast.success("Member removed");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      toast.error(message || "Unable to remove this member.");
+    }
+  }
 
   return (
     <AppShell
@@ -48,6 +66,7 @@ function MembersPage() {
       actions={
         canManage ? (
           <InviteMemberModal
+            familyId={familyId}
             trigger={
               <Button size="sm">
                 <Send /> <span className="hidden sm:inline">Invite member</span>
@@ -57,19 +76,43 @@ function MembersPage() {
         ) : null
       }
     >
-      {members.isLoading ? (
+      {families.isLoading || family.isLoading || members.isLoading ? (
         <CardSkeletonGrid count={3} />
+      ) : families.isError || family.isError || members.isError ? (
+        <ErrorState
+          message="Unable to load family members. Please try again."
+          onRetry={() => {
+            void families.refetch();
+            void family.refetch();
+            void members.refetch();
+          }}
+        />
+      ) : !members.data?.length ? (
+        <EmptyState
+          title="No members yet"
+          description="Invite someone to begin building this family archive together."
+        />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Family members and their roles</caption>
             <thead className="border-b border-border bg-parchment/50">
               <tr className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                <th scope="col" className="px-5 py-4 font-normal">Name</th>
-                <th scope="col" className="px-5 py-4 font-normal">Role</th>
-                <th scope="col" className="hidden px-5 py-4 font-normal sm:table-cell">Status</th>
-                <th scope="col" className="hidden px-5 py-4 font-normal md:table-cell">Joined</th>
-                <th scope="col" className="px-5 py-4 font-normal"><span className="sr-only">Actions</span></th>
+                <th scope="col" className="px-5 py-4 font-normal">
+                  Name
+                </th>
+                <th scope="col" className="px-5 py-4 font-normal">
+                  Role
+                </th>
+                <th scope="col" className="hidden px-5 py-4 font-normal sm:table-cell">
+                  Status
+                </th>
+                <th scope="col" className="hidden px-5 py-4 font-normal md:table-cell">
+                  Joined
+                </th>
+                <th scope="col" className="px-5 py-4 font-normal">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -102,10 +145,40 @@ function MembersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => toast.success(`${m.name} is now an admin`)}>
+                          <DropdownMenuItem
+                            onSelect={async () => {
+                              try {
+                                await changeMemberRole(familyId, m.userId, "admin");
+                                await queryClient.invalidateQueries({
+                                  queryKey: ["members", familyId],
+                                });
+                                toast.success(`${m.name} is now an admin`);
+                              } catch (err: unknown) {
+                                const message = axios.isAxiosError(err)
+                                  ? err.response?.data?.message
+                                  : undefined;
+                                toast.error(message || "Unable to change this role.");
+                              }
+                            }}
+                          >
                             Make admin
                           </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => toast.success(`${m.name} can now only view`)}>
+                          <DropdownMenuItem
+                            onSelect={async () => {
+                              try {
+                                await changeMemberRole(familyId, m.userId, "viewer");
+                                await queryClient.invalidateQueries({
+                                  queryKey: ["members", familyId],
+                                });
+                                toast.success(`${m.name} can now only view`);
+                              } catch (err: unknown) {
+                                const message = axios.isAxiosError(err)
+                                  ? err.response?.data?.message
+                                  : undefined;
+                                toast.error(message || "Unable to change this role.");
+                              }
+                            }}
+                          >
                             Change to viewer
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -142,7 +215,7 @@ function MembersPage() {
         description="They will lose access to this family archive. Their contributions and attributions remain in the record."
         confirmLabel="Remove member"
         destructive
-        onConfirm={() => toast.success("Member removed")}
+        onConfirm={() => void handleRemove()}
       />
     </AppShell>
   );

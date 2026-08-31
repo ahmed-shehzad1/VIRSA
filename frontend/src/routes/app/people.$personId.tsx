@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BookPlus, PencilLine } from "lucide-react";
+import { BookPlus, ImagePlus, PencilLine } from "lucide-react";
 import { AppShell } from "@/components/virsa/app-shell";
 import { PersonPortrait } from "@/components/virsa/person-portrait";
 import { InMemoryBadge } from "@/components/virsa/badges";
@@ -9,13 +9,12 @@ import { MemoryCard } from "@/components/virsa/memory-card";
 import { PhotoGallery } from "@/components/virsa/photo-gallery";
 import { PersonCard } from "@/components/virsa/person-card";
 import { EmptyState, LoadingState } from "@/components/virsa/states";
-import { AddMemoryModal, AiStoryAssistant } from "@/components/virsa/modals";
-import { RecordHistory } from "@/components/virsa/change-request-card";
+import { AddMemoryModal, AiStoryAssistant, UploadPhotoModal } from "@/components/virsa/modals";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { lifeSpan, queries, relationsOf } from "@/data/api";
-import { HISTORY, MEMORIES, PHOTOS } from "@/data/mock";
+import { lifeSpan, queries } from "@/data/api";
 import { cn } from "@/lib/utils";
+import { mapPerson, type BackendPerson } from "@/services/personService";
 
 export const Route = createFileRoute("/app/people/$personId")({
   head: () => ({
@@ -64,10 +63,14 @@ function RelationGroup({
 
 function PersonProfile() {
   const { personId } = Route.useParams();
-  const person = useQuery(queries.person(personId));
-  const people = useQuery(queries.people);
+  const families = useQuery(queries.families);
+  const family = families.data?.[0];
+  const profile = useQuery({
+    ...queries.profile(family?.id || "", personId),
+    enabled: !!family?.id,
+  });
 
-  if (person.isLoading || people.isLoading) {
+  if (families.isLoading || profile.isLoading) {
     return (
       <AppShell title="Loading record">
         <LoadingState label="Opening the record" />
@@ -75,7 +78,7 @@ function PersonProfile() {
     );
   }
 
-  const p = person.data;
+  const p = profile.data?.person;
   if (!p) {
     return (
       <AppShell title="Record not found">
@@ -92,11 +95,16 @@ function PersonProfile() {
     );
   }
 
-  const all = people.data ?? [];
-  const rel = relationsOf(p, all);
-  const memories = MEMORIES.filter((m) => m.personId === p.id);
-  const photos = PHOTOS.filter((ph) => ph.personIds.includes(p.id));
-  const history = HISTORY.filter((h) => h.personId === p.id);
+  const memories = profile.data?.memories ?? [];
+  const photos = profile.data?.photos ?? [];
+  const relationPeople = (items: Array<{ person: BackendPerson }>) =>
+    items.map((item) => mapPerson(item.person));
+  const rel = {
+    parents: relationPeople(profile.data?.relationships.parents ?? []),
+    spouses: relationPeople(profile.data?.relationships.spouses ?? []),
+    siblings: relationPeople(profile.data?.relationships.siblings ?? []),
+    children: relationPeople(profile.data?.relationships.children ?? []),
+  };
 
   return (
     <AppShell
@@ -104,7 +112,8 @@ function PersonProfile() {
       description={lifeSpan(p)}
       actions={
         <AddMemoryModal
-          people={all}
+          familyId={family?.id || ""}
+          people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
           defaultPersonId={p.id}
           trigger={
             <Button size="sm">
@@ -159,11 +168,17 @@ function PersonProfile() {
           )}
 
           <dl className="mt-7 grid gap-5 border-t border-border pt-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Detail label="Born" value={p.birthDate ?? (p.birthYear ? String(p.birthYear) : undefined)} />
+            <Detail
+              label="Born"
+              value={p.birthDate ?? (p.birthYear ? String(p.birthYear) : undefined)}
+            />
             <Detail label="Birth place" value={p.birthPlace} />
             {p.deceased && (
               <>
-                <Detail label="Died" value={p.deathDate ?? (p.deathYear ? String(p.deathYear) : undefined)} />
+                <Detail
+                  label="Died"
+                  value={p.deathDate ?? (p.deathYear ? String(p.deathYear) : undefined)}
+                />
                 <Detail label="Place of death" value={p.deathPlace} />
               </>
             )}
@@ -172,7 +187,10 @@ function PersonProfile() {
 
           <p className="mt-6 text-xs text-muted-foreground">
             Record added by <span className="text-foreground">{p.addedBy}</span> on {p.addedAt}.
-            <Link to="/app/changes" className="ml-2 text-primary underline-offset-4 hover:underline">
+            <Link
+              to="/app/changes"
+              className="ml-2 text-primary underline-offset-4 hover:underline"
+            >
               Suggest a correction
             </Link>
           </p>
@@ -204,7 +222,8 @@ function PersonProfile() {
           <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
             <h3 className="rule-gold font-display text-2xl">Life story</h3>
             <p className="mt-6 max-w-3xl text-[17px] leading-[1.8] text-foreground/90">
-              {p.lifeStory ?? "No life story has been written yet. Anyone in the family can begin one."}
+              {p.lifeStory ??
+                "No life story has been written yet. Anyone in the family can begin one."}
             </p>
             <p className="mt-6 text-xs text-muted-foreground">
               A life story is the family's factual record — distinct from a memory, which is one
@@ -217,7 +236,9 @@ function PersonProfile() {
 
           {p.achievements.length > 0 && (
             <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
-              <h3 className="rule-gold font-display text-2xl">Achievements and important moments</h3>
+              <h3 className="rule-gold font-display text-2xl">
+                Achievements and important moments
+              </h3>
               <ul className="mt-6 divide-y divide-border">
                 {p.achievements.map((a) => (
                   <li key={a.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-4">
@@ -241,7 +262,10 @@ function PersonProfile() {
             {p.timeline.length ? (
               <Timeline events={p.timeline} />
             ) : (
-              <EmptyState title="No dated events yet" description="Add the moments this life turned on." />
+              <EmptyState
+                title="No dated events yet"
+                description="Add the moments this life turned on."
+              />
             )}
           </section>
         </TabsContent>
@@ -259,7 +283,8 @@ function PersonProfile() {
               description="A memory is a personal recollection. Be the first to write one down."
               action={
                 <AddMemoryModal
-                  people={all}
+                  familyId={family?.id || ""}
+                  people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
                   defaultPersonId={p.id}
                   trigger={<Button>Add the first memory</Button>}
                 />
@@ -269,8 +294,23 @@ function PersonProfile() {
         </TabsContent>
 
         <TabsContent value="photos" className="mt-8">
+          <div className="mb-6 flex justify-end">
+            <UploadPhotoModal
+              familyId={family?.id || ""}
+              people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
+              defaultPersonId={p.id}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <ImagePlus /> Upload photograph
+                </Button>
+              }
+            />
+          </div>
           {photos.length ? (
-            <PhotoGallery photos={photos} people={all} />
+            <PhotoGallery
+              photos={photos}
+              people={[p, ...rel.parents, ...rel.spouses, ...rel.siblings, ...rel.children]}
+            />
           ) : (
             <EmptyState
               title="No photographs yet"
@@ -298,11 +338,10 @@ function PersonProfile() {
         <TabsContent value="history" className="mt-8">
           <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
             <h3 className="rule-gold mb-8 font-display text-2xl">Record history</h3>
-            {history.length ? (
-              <RecordHistory entries={history} />
-            ) : (
-              <EmptyState title="No changes recorded" description="Every future change will be attributed here." />
-            )}
+            <EmptyState
+              title="Record history is not available yet"
+              description="The profile API currently provides the person's archive content, but not its audit history."
+            />
           </section>
         </TabsContent>
       </Tabs>

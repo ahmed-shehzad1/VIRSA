@@ -22,6 +22,7 @@ import { Route as AppMemoriesRouteImport } from './routes/app/memories'
 import { Route as AppPhotosRouteImport } from './routes/app/photos'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppTreeRouteImport } from './routes/app/tree'
+import { Route as CreateFamilyBackupRouteImport } from './routes/create-family.backup'
 import { Route as AppPeoplePersonIdRouteImport } from './routes/app/people.$personId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +90,11 @@ const AppTreeRoute = AppTreeRouteImport.update({
   path: '/tree',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const CreateFamilyBackupRoute = CreateFamilyBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => CreateFamilyRoute,
+} as any)
 const AppPeoplePersonIdRoute = AppPeoplePersonIdRouteImport.update({
   id: '/people/$personId',
   path: '/people/$personId',
@@ -98,7 +104,7 @@ const AppPeoplePersonIdRoute = AppPeoplePersonIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
-  '/create-family': typeof CreateFamilyRoute
+  '/create-family': typeof CreateFamilyRouteWithChildren
   '/join-family': typeof JoinFamilyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -108,12 +114,13 @@ export interface FileRoutesByFullPath {
   '/app/photos': typeof AppPhotosRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/tree': typeof AppTreeRoute
+  '/create-family/backup': typeof CreateFamilyBackupRoute
   '/app/': typeof AppIndexRoute
   '/app/people/$personId': typeof AppPeoplePersonIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/create-family': typeof CreateFamilyRoute
+  '/create-family': typeof CreateFamilyRouteWithChildren
   '/join-family': typeof JoinFamilyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/app/photos': typeof AppPhotosRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/tree': typeof AppTreeRoute
+  '/create-family/backup': typeof CreateFamilyBackupRoute
   '/app': typeof AppIndexRoute
   '/app/people/$personId': typeof AppPeoplePersonIdRoute
 }
@@ -130,7 +138,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
-  '/create-family': typeof CreateFamilyRoute
+  '/create-family': typeof CreateFamilyRouteWithChildren
   '/join-family': typeof JoinFamilyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/app/photos': typeof AppPhotosRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/tree': typeof AppTreeRoute
+  '/create-family/backup': typeof CreateFamilyBackupRoute
   '/app/': typeof AppIndexRoute
   '/app/people/$personId': typeof AppPeoplePersonIdRoute
 }
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/app/photos'
     | '/app/settings'
     | '/app/tree'
+    | '/create-family/backup'
     | '/app/'
     | '/app/people/$personId'
   fileRoutesByTo: FileRoutesByTo
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/app/photos'
     | '/app/settings'
     | '/app/tree'
+    | '/create-family/backup'
     | '/app'
     | '/app/people/$personId'
   id:
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/app/photos'
     | '/app/settings'
     | '/app/tree'
+    | '/create-family/backup'
     | '/app/'
     | '/app/people/$personId'
   fileRoutesById: FileRoutesById
@@ -196,7 +208,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRouteRoute: typeof AppRouteRouteWithChildren
-  CreateFamilyRoute: typeof CreateFamilyRoute
+  CreateFamilyRoute: typeof CreateFamilyRouteWithChildren
   JoinFamilyRoute: typeof JoinFamilyRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
@@ -295,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTreeRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/create-family/backup': {
+      id: '/create-family/backup'
+      path: '/backup'
+      fullPath: '/create-family/backup'
+      preLoaderRoute: typeof CreateFamilyBackupRouteImport
+      parentRoute: typeof CreateFamilyRoute
+    }
     '/app/people/$personId': {
       id: '/app/people/$personId'
       path: '/people/$personId'
@@ -331,10 +350,22 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
 
+interface CreateFamilyRouteChildren {
+  CreateFamilyBackupRoute: typeof CreateFamilyBackupRoute
+}
+
+const CreateFamilyRouteChildren: CreateFamilyRouteChildren = {
+  CreateFamilyBackupRoute: CreateFamilyBackupRoute,
+}
+
+const CreateFamilyRouteWithChildren = CreateFamilyRoute._addFileChildren(
+  CreateFamilyRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRouteRoute: AppRouteRouteWithChildren,
-  CreateFamilyRoute: CreateFamilyRoute,
+  CreateFamilyRoute: CreateFamilyRouteWithChildren,
   JoinFamilyRoute: JoinFamilyRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
